@@ -20,15 +20,15 @@ void print_usage()
 #define word struct c_word 
 struct c_word /* why? Because I like to think about things this way */
 {
-	char* text;
+  char* text;
 };
 
 #define word_list struct c_word_list
 struct c_word_list
 {
-	word* list;
-	int max_size;
-	int current_size; 
+  word* list;
+  int max_size;
+  int current_size; 
 };
 
 word_list * new_word_list()
@@ -85,16 +85,18 @@ FILE * file_open(  char * input_file )
 word_list * list_populate( FILE * fp )
 {
   word_list * current_list = new_word_list();
+  char BUFFER[MAX_WORD_SIZE];
   for(;;)
   {
-    word local_word;
-	local_word.text = malloc( sizeof(char)*9 );
-    int result  = fscanf(fp, "%s", local_word.text);
+    int result  = fscanf(fp, "%s", BUFFER);
 	if( result == EOF )
 	{
-		free(local_word.text);
 		break;
 	} 
+    word local_word;
+    local_word.text = malloc( (sizeof(char)*strlen(BUFFER))+1 );
+    strcpy(local_word.text , BUFFER );
+    
     printf( "%s\n" , local_word.text);
     append_word_list( current_list , local_word);
   }
@@ -104,8 +106,20 @@ word_list * list_populate( FILE * fp )
   return 0;
 }
 
-void list_search( word_list * current_list)
+void list_search( word_list * current_list , char * compare)
 {
+  int i; char* pch;
+  for(i = 0 ; i< current_list->current_size ; i++)
+  {
+    printf("Words containing substring \"%s\" are:", compare);
+
+    if( strstr(current_list->list[i].text, compare) != NULL)
+    {
+      printf("%s\n", current_list->list[i].text);
+    }
+
+  }
+
   return;
 }
 
