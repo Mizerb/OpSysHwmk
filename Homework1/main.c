@@ -27,33 +27,48 @@ struct c_word /* why? Because I like to think about things this way */
 struct c_word_list
 {
 	word* list;
-	unsigned max_size;
-	unsigned current_size; 
+	int max_size;
+	int current_size; 
 };
 
 word_list * new_word_list()
 {
-  word_list * ret = (word_list*) malloc( sizeof(word_list)); 
+  word_list * ret = (word_list*) malloc( sizeof(word_list) ); 
   if( ret == NULL ) mem_error();
   ret->list = (word*) calloc(INITAL_LIST_SIZE, sizeof(word) );
+  printf("%d\n", INITAL_LIST_SIZE);
   if( ret->list == NULL ) mem_error();
   ret->max_size = INITAL_LIST_SIZE;
   ret->current_size = 0;
-  printf("Allocated initial array of 16 character pointers.");
+  printf("Allocated initial array of %d character pointers.\n", ret->max_size);
   return ret;
 }
 
 void append_word_list( word_list * list , word new_word)
 {
   list->list[list->current_size++] = new_word;
-
+#if 0
+  printf( "current_size is %d\n" , list->current_size);
+  printf( "max_size is %d\n" , list->max_size);
+#endif
   if(list->current_size == list->max_size)
   {
-    list->list = (word*) realloc( list, list->max_size*2*sizeof(word) );
+    list->list = (word*) realloc( list->list, list->max_size*2*sizeof(word) );
     if( list->list == NULL ) mem_error();
     list->max_size = list->max_size *2;
     printf( "Re-allocated array of %d character pointers.\n", list->max_size );
   }
+}
+
+void list_free( word_list * list)
+{
+	int i;
+	for( i = 0; i < list->current_size ; i++)
+	{
+		fprintf( stderr, "Shit hit the fan here right?\n");
+		free(list->list[i].text);
+	}
+	free(list->list);
 }
 
 FILE * file_open(  char * input_file )
@@ -84,32 +99,15 @@ word_list * list_populate( FILE * fp )
     append_word_list( current_list , local_word);
   }
   fclose(fp);
-  return 0;
-}
-/*
-int Name_Grab( char* input_file, m_string* input_names , int n)
-{
-  FILE * fp;
-  fp = fopen(input_file , "r");
-  if( fp == NULL)
-  {
-    fprintf(stderr , "Can't open inputfile\n");
-    exit(1);
-  }
-  int i;
-  for(i =0 ; i<n ; i++)
-  {
-    m_string local;
-	char * name = malloc( sizeof(char)*9);
-    fscanf(fp, "%s", name);
-	local.name = name;
-    //printf( "%s\n" , local.name);
-    input_names[i] = local;
-  }
+  printf("All done (successfully read %d words).\n", current_list->current_size);
 
   return 0;
 }
-*/
+
+void list_search( word_list * current_list)
+{
+  return;
+}
 
 int main(int argc, char  *argv[])
 {
@@ -122,6 +120,10 @@ int main(int argc, char  *argv[])
   fp = file_open( argv[1] );
 
   word_list * current_list = list_populate(fp);
+  
+  list_search( current_list);
+
+  //list_free( current_list);
 
   return 0;
 }
