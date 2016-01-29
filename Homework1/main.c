@@ -48,6 +48,8 @@ word_list * new_word_list()
 void append_word_list( word_list * list , word new_word)
 {
   list->list[list->current_size++] = new_word;
+  //printf("%s\n", (list->list[list->current_size].text) );
+  //list->current_size++;
 #if 0
   printf( "current_size is %d\n" , list->current_size);
   printf( "max_size is %d\n" , list->max_size);
@@ -80,7 +82,7 @@ FILE * file_open(  char * input_file )
   {
     fprintf( stderr , "Can't open inputfile\n" );
     exit(1);
-  }
+  } 
   return fp;
 }
 
@@ -104,16 +106,15 @@ word_list * list_populate( FILE * fp )
   fclose(fp);
   printf("All done (successfully read %d words).\n", current_list->current_size);
 
-  return 0;
+  return current_list;
 }
 
 void list_search( word_list * current_list , char * compare)
 {
   int i; 
+  printf("Words containing substring \"%s\" are:\n", compare);
   for(i = 0 ; i< current_list->current_size ; i++)
   {
-    printf("Words containing substring \"%s\" are:", compare);
-
     if( strstr(current_list->list[i].text, compare) != NULL)
     {
       printf("%s\n", current_list->list[i].text);
@@ -135,7 +136,9 @@ int main(int argc, char  *argv[])
   fp = file_open( argv[1] );
 
   word_list * current_list = list_populate(fp);
-  
+/*fprintf(stderr, "SHIT SHIT HSIT\n" );
+  word a = current_list->list[1];
+  fprintf(stderr, "LESS SHIT?\n");*/
   list_search( current_list,  argv[2]);
 
   //list_free( current_list);
