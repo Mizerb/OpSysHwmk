@@ -13,5 +13,5 @@ int main(int argv , char* argc[]){
   if(argv != 3){
     printf("USAGE ARG 1: FILENAME \n ARG2: SEARCH STRING");
   }
-
+}
   
