@@ -1,6 +1,7 @@
 /* main.c BEN MIZERA */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_WORD_SIZE 128
 #define INITAL_LIST_SIZE 16
@@ -80,6 +81,7 @@ FILE * file_open(  char * input_file )
     fprintf( stderr , "Can't open inputfile\n" );
     exit(1);
   }
+  return fp;
 }
 
 word_list * list_populate( FILE * fp )
@@ -96,7 +98,6 @@ word_list * list_populate( FILE * fp )
     word local_word;
     local_word.text = malloc( (sizeof(char)*strlen(BUFFER))+1 );
     strcpy(local_word.text , BUFFER );
-    
     printf( "%s\n" , local_word.text);
     append_word_list( current_list , local_word);
   }
@@ -108,7 +109,7 @@ word_list * list_populate( FILE * fp )
 
 void list_search( word_list * current_list , char * compare)
 {
-  int i; char* pch;
+  int i; 
   for(i = 0 ; i< current_list->current_size ; i++)
   {
     printf("Words containing substring \"%s\" are:", compare);
@@ -135,7 +136,7 @@ int main(int argc, char  *argv[])
 
   word_list * current_list = list_populate(fp);
   
-  list_search( current_list);
+  list_search( current_list,  argv[2]);
 
   //list_free( current_list);
 
