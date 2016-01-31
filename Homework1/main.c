@@ -65,13 +65,13 @@ void append_word_list( word_list * list , word new_word)
 
 void list_free( word_list * list)
 {
-	int i;
-	for( i = 0; i < list->current_size ; i++)
-	{
-		fprintf( stderr, "Shit hit the fan here right?\n");
-		free(list->list[i].text);
-	}
-	free(list->list);
+  int i;
+  for( i = 0; i < list->current_size ; i++)
+  {
+    fprintf( stderr, "Shit hit the fan here right?\n");
+    free(list->list[i].text);
+  }
+  free(list->list);
 }
 
 FILE * file_open(  char * input_file )
@@ -93,15 +93,17 @@ word_list * list_populate( FILE * fp )
   for(;;)
   {
     int result  = fscanf(fp, "%s", BUFFER);
-	if( result == EOF )
-	{
-		break;
-	} 
+    if( result == EOF )
+    {
+      break;
+    } 
     word local_word;
     local_word.text = malloc( (sizeof(char)*strlen(BUFFER))+1 );
     strcpy(local_word.text , BUFFER );
-    printf( "%s\n" , local_word.text);
-    append_word_list( current_list , local_word);
+   
+   // printf( "%s\n" , local_word.text);
+   
+     append_word_list( current_list , local_word);
   }
   fclose(fp);
   printf("All done (successfully read %d words).\n", current_list->current_size);
