@@ -37,7 +37,7 @@ word_list * new_word_list()
   word_list * ret = (word_list*) malloc( sizeof(word_list) ); 
   if( ret == NULL ) mem_error();
   ret->list = (word*) calloc(INITAL_LIST_SIZE, sizeof(word) );
-  printf("%d\n", INITAL_LIST_SIZE);
+  //printf("%d\n", INITAL_LIST_SIZE);
   if( ret->list == NULL ) mem_error();
   ret->max_size = INITAL_LIST_SIZE;
   ret->current_size = 0;
@@ -68,10 +68,11 @@ void list_free( word_list * list)
   int i;
   for( i = 0; i < list->current_size ; i++)
   {
-    fprintf( stderr, "Shit hit the fan here right?\n");
+   // fprintf( stderr, "Shit hit the fan here right?\n");
     free(list->list[i].text);
   }
   free(list->list);
+  free(list);
 }
 
 FILE * file_open(  char * input_file )
@@ -121,7 +122,7 @@ void list_search( word_list * current_list , char * compare)
     {
       printf("%s\n", current_list->list[i].text);
     }
-
+    //free(current_list->list[i].text);
   }
 
   return;
@@ -142,8 +143,8 @@ int main(int argc, char  *argv[])
   word a = current_list->list[1];
   fprintf(stderr, "LESS SHIT?\n");*/
   list_search( current_list,  argv[2]);
+  //free(current_list);
+  list_free( current_list);
 
-  //list_free( current_list);
-
-  return 0;
+  return EXIT_SUCCESS;
 }
