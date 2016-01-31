@@ -8,8 +8,8 @@
 
 void mem_error()
 {
-	fprintf( stderr, "THERE'S A MEMORY FUCK UP\n");
-	exit(1);
+  fprintf( stderr, "THERE'S A MEMORY FUCK UP\n");
+  exit(1);
 }
 
 void print_usage()
@@ -18,19 +18,17 @@ void print_usage()
   return;
 }
 
-#define word struct c_word 
-struct c_word /* why? Because I like to think about things this way */
+typedef struct c_word  /* why? Because I like to think about things this way */
 {
   char* text;
-};
+}word;
 
-#define word_list struct c_word_list
-struct c_word_list
+typedef struct c_word_list
 {
   word* list;
   int max_size;
   int current_size; 
-};
+}word_list;
 
 word_list * new_word_list()
 {
@@ -122,7 +120,6 @@ void list_search( word_list * current_list , char * compare)
     {
       printf("%s\n", current_list->list[i].text);
     }
-    //free(current_list->list[i].text);
   }
 
   return;
