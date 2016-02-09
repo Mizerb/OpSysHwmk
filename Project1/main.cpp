@@ -14,10 +14,11 @@
 
 class Proc
 {
+public:
   int proc_num;
   int burst_time;
   int num_burst;
-  int io-time;
+  int io_time;
 };
 
 bool Proc_compare_burst( const Proc & i , const Proc & j)
@@ -33,10 +34,11 @@ bool Proc_compare_proc_numb( const Proc &i, const Proc &j)
 
 class Cpu
 {
+private:
   Proc * burst_now;
   Proc * io_now;
   unsigned long time;
-  std::vector<process> process_queue; 
+  std::vector<Proc> process_queue; 
   
   void queue_populate( std::istream& in_stream);
 };
@@ -48,15 +50,15 @@ void Cpu::queue_populate( std::istream& in_stream)
 
 
 
-void execute_FCFS( CPU cpu , std::ostream% out_put)
+void execute_FCFS( Cpu cpu , std::ostream& out_put)
 {
   return;
 } 
 
 
-void execute_SJF( CPU cpu , std::ostream& out_put)
+void execute_SJF( Cpu cpu , std::ostream& out_put)
 {
-  std::sort(cpu.process_queue.begin() , cpu.process_queue.end(), 
+  //std::sort(cpu.process_queue.begin() , cpu.process_queue.end(), ); 
 
 
   return;
