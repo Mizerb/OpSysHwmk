@@ -1,7 +1,16 @@
+// INCLUDES *****************************************************************************
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
+
+// DEFINES ******************************************************************************
+
+#define file_name "processes.txt"
+
+// **************************************************************************************
+
+
 
 class Proc
 {
@@ -28,7 +37,15 @@ class Cpu
   Proc * io_now;
   unsigned long time;
   std::vector<process> process_queue; 
+  
+  void queue_populate( std::istream& in_stream);
 };
+
+void Cpu::queue_populate( std::istream& in_stream)
+{
+  return;
+}
+
 
 
 void execute_FCFS( CPU cpu , std::ostream% out_put)
@@ -44,3 +61,14 @@ void execute_SJF( CPU cpu , std::ostream& out_put)
 
   return;
 }
+
+
+int main( int argc , char* argv[])
+{
+  
+
+  return 0;
+}
+
+
+
