@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <stdio.h>
 
 // DEFINES ******************************************************************************
 
@@ -37,7 +38,7 @@ bool Proc_compare_proc_numb( const Proc &i, const Proc &j)
 class Proc_Queue
 {
 private:
-  std::list<Proc>* queue;
+  std::list<Proc> queue;
   int type;
 public:
   Proc_Queue(int type_);
@@ -48,14 +49,14 @@ public:
 
 Proc_Queue::Proc_Queue( int  type_)
 {
-  this.queue = new std::list<Proc>();
-  this.type = type;
+  queue = new std::list<Proc>();
+  type = type_;
 }
 
 void Proc_Queue::add_proc( Proc to_add)
 {
   queue -> push_back( to_add);
-  if( type == SFJ)
+  if( type == SJF)
   {
     queue->sort( Proc_compare_burst);
   }
@@ -70,8 +71,7 @@ Proc Proc_Queue::get_next()
 
 
 class Cpu
-{
-  Cpu() 
+{ 
 private:
   Proc /* * */ burst_now;
   Proc /* * */ io_now;  //I don't know if these will be pointers. 
@@ -81,8 +81,12 @@ private:
   int type;
 
   void execute_run( std::ostream& out_put);
-  
+
+  void execute_tick();
+   
+  bool not_done();  
 public:
+  Cpu(); // Holy shit, gotta make an object
   void queue_populate( std::istream& in_stream);
   
 };
@@ -101,7 +105,7 @@ void Cpu::execute_tick()
 
 void Cpu::execute_run(  std::ostream& out_put)
 {
-  while( Cpu.not_done())
+  while( not_done())
   {
       
   }
