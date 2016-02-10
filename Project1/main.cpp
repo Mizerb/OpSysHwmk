@@ -36,17 +36,37 @@ bool Proc_compare_proc_numb( const Proc &i, const Proc &j)
 
 class Proc_Queue
 {
+private:
   std::list<Proc>* queue;
+  int type;
 public:
-  Proc_Queue();
+  Proc_Queue(int type_);
   ~Proc_Queue(){ delete queue; }
   void add_proc( Proc to_add);
   Proc get_next();
 }
 
-Proc_Queue::Proc_Queue()
+Proc_Queue::Proc_Queue( int  type_)
 {
-  this.queue = new 
+  this.queue = new std::list<Proc>();
+  this.type = type;
+}
+
+void Proc_Queue::add_proc( Proc to_add)
+{
+  queue -> push_back( to_add);
+  if( type == SFJ)
+  {
+    queue->sort( Proc_compare_burst);
+  }
+  return;
+}
+
+Proc Proc_Queue::get_next()
+{
+  return queue->pop_front();
+}
+
 
 
 class Cpu
@@ -56,12 +76,11 @@ private:
   Proc /* * */ burst_now;
   Proc /* * */ io_now;  //I don't know if these will be pointers. 
   unsigned long time;
-  std::vector<Proc> process_queue; 
+  Proc_Queue * proc_q; 
   
   int type;
 
-  void execute_FCFS( std::ostream& out_put);
-  void execute_SJF ( std::ostream& out_put);
+  void execute_run( std::ostream& out_put);
   
 public:
   void queue_populate( std::istream& in_stream);
@@ -80,7 +99,7 @@ void Cpu::execute_tick()
 
 }
 
-void Cpu::execute_FCFS(  std::ostream& out_put)
+void Cpu::execute_run(  std::ostream& out_put)
 {
   while( Cpu.not_done())
   {
@@ -91,8 +110,11 @@ void Cpu::execute_FCFS(  std::ostream& out_put)
 
 int main( int argc , char* argv[])
 {
-  
-
+  if( argc != 3)
+  { 
+    fprintf(stderr,"Hey, wrong inputs buddy\n");
+    return 1;
+  }
   return 0;
 }
 
