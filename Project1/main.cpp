@@ -4,7 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <stdio.h>
-
+#include <list>
 // DEFINES ******************************************************************************
 
 #define file_name "processes.txt"
@@ -42,30 +42,31 @@ private:
   int type;
 public:
   Proc_Queue(int type_);
-  ~Proc_Queue(){ delete queue; }
+  ~Proc_Queue();
   void add_proc( Proc to_add);
   Proc get_next();
-}
+};
 
 Proc_Queue::Proc_Queue( int  type_)
-{
-  queue = new std::list<Proc>();
+{  
   type = type_;
 }
 
 void Proc_Queue::add_proc( Proc to_add)
 {
-  queue -> push_back( to_add);
+  queue.push_back( to_add);
   if( type == SJF)
   {
-    queue->sort( Proc_compare_burst);
+    queue.sort( Proc_compare_burst);
   }
   return;
 }
 
 Proc Proc_Queue::get_next()
 {
-  return queue->pop_front();
+  Proc Ret = queue.front();
+  queue.pop_front();
+  return Ret;
 }
 
 
@@ -84,7 +85,7 @@ private:
 
   void execute_tick();
    
-  bool not_done();  
+  bool not_done(){return true;}  
 public:
   Cpu(); // Holy shit, gotta make an object
   void queue_populate( std::istream& in_stream);
