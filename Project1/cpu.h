@@ -25,16 +25,19 @@ class Cpu
 { 
 private:
   Proc /* * */ burst_now;
-  Proc /* * */ io_now;  //I don't know if these will be pointers. 
+  std::string<Proc> /* * */ io_now;  //I don't know if these will be pointers. 
   unsigned long time;
   Proc_Queue proc_q; 
   Proc_Queue inital_q;
+  
+  int context_countdown;
 
   Result execute_run();
 
   void execute_tick();
    
-  bool not_done();  
+  bool not_done();
+  void IO_dealings();
 public:
   Cpu(); // Holy shit, gotta make an object
   Result RUN();

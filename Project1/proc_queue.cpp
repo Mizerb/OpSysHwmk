@@ -25,7 +25,7 @@ Proc Proc_Queue::get_next()
 {
 	Proc Ret;
 
-	if( type == 0 ) queue.sort( Proc_compare_proc_numb);
+	//if( type == 0 ) queue.sort( Proc_compare_proc_numb);
 	if( type == 1 ) queue.sort( Proc_compare_burst);
 
     Ret = queue.front();

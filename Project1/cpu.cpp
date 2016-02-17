@@ -47,6 +47,7 @@ Cpu::Cpu()
 Result Cpu::RUN()
 {
   // internal things and safties!!
+  context_countdown = 9;
   return execute_run();
 }
 
@@ -95,6 +96,15 @@ void Cpu::change_type( int i)
   return;
 }
 
+void Cpu::IO_dealings()
+{
+  //increments all things in IO;
+  for(std::list<Proc>::iterator it= io_now.begin(); it != io_now.end() ; ++it )
+  {
+  	it.io-- 
+  }
+}
+
 void Cpu::execute_tick()
 {
   time++;
@@ -107,7 +117,29 @@ Result Cpu::execute_run()
   Result Ret;
   while( not_done())
   {
-    return Ret;
+    //If No Proc, grab proc
+    if( context_countdown == 0)
+    {
+      // GRAB NEW TASK.
+      context_countdown = -1;
+      burst_now = proc_q.get_next();
+      
+      burst_now.
+
+
+      printf("time %ums: P%i started using the CPU %s", time, 
+        burst_now.proc_num , (proc_q.printQ()).c_str() ); // Truly evil I know.
+    }
+    else if( context_countdown < 0)
+    {
+      
+    }
+    
+
+
+
+    proc_q.increment();
+    //return Ret;
   }
   return Ret;
 } 
