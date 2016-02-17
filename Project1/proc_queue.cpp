@@ -1,4 +1,6 @@
 #include "proc_queue.h"
+#include <string>
+#include <stdio.h>
 
 
 bool Proc_compare_burst( const Proc & i , const Proc & j)
@@ -43,13 +45,16 @@ void Proc_Queue::increment()
 }
 
 
-std::string Proc_Queue::printQ() //Yeah, I'm sorry, I like the c outputs but
+std::string Proc_Queue::print_Q() //Yeah, I'm sorry, I like the c outputs but
 {                                // I want the ease of C++ strings... 
   std::string Ret = "[Q";
+  char buff[255];
   for(std::list<Proc>::iterator it= queue.begin(); it != queue.end() ; ++it )
   {
   	Ret += " ";
-  	Ret += std::to_string(it->proc_num); 
+  	sprintf(buff, "%d" , it->proc_num); // Yeah, something was broken
+  	// with std::to_string
+  	Ret += buff; 
   }
   
   Ret += "]";

@@ -7,6 +7,7 @@
 
 #define BUFF_LEN 255
 
+#define PRINT_Q (proc_q.print_Q()).c_str()
 
 void Result::print_me()
 {
@@ -101,7 +102,11 @@ void Cpu::IO_dealings()
   //increments all things in IO;
   for(std::list<Proc>::iterator it= io_now.begin(); it != io_now.end() ; ++it )
   {
-  	it.io-- 
+  	it->io_time--;
+  	if(it->io_time == 0 )
+  	{
+  	  printf("time %lums: P%i completed I\\O %s", time, it->proc_num, PRINT_Q);
+  	}
   }
 }
 
@@ -124,11 +129,11 @@ Result Cpu::execute_run()
       context_countdown = -1;
       burst_now = proc_q.get_next();
       
-      burst_now.
+      burst_now.burst_time = burst_now.inital_burst_time;
 
 
-      printf("time %ums: P%i started using the CPU %s", time, 
-        burst_now.proc_num , (proc_q.printQ()).c_str() ); // Truly evil I know.
+      printf("time %lums: P%i started using the CPU %s", time, 
+        burst_now.proc_num , PRINT_Q ); // Truly evil I know.
     }
     else if( context_countdown < 0)
     {
@@ -137,7 +142,7 @@ Result Cpu::execute_run()
     
 
 
-
+    IO_dealings();
     proc_q.increment();
     //return Ret;
   }

@@ -25,7 +25,7 @@ class Cpu
 { 
 private:
   Proc /* * */ burst_now;
-  std::string<Proc> /* * */ io_now;  //I don't know if these will be pointers. 
+  std::list<Proc> /* * */ io_now;  //I don't know if these will be pointers. 
   unsigned long time;
   Proc_Queue proc_q; 
   Proc_Queue inital_q;

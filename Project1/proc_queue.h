@@ -1,5 +1,5 @@
 #include <list>
-
+#include <string>
 
 #ifndef PROC_QUEUE_H
 #define PROC_QUEUE_H
