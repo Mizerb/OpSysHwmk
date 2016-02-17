@@ -41,3 +41,17 @@ void Proc_Queue::increment()
   	it->wait_time++; it-> turn_time++; 
   }
 }
+
+
+std::string Proc_Queue::printQ() //Yeah, I'm sorry, I like the c outputs but
+{                                // I want the ease of C++ strings... 
+  std::string Ret = "[Q";
+  for(std::list<Proc>::iterator it= queue.begin(); it != queue.end() ; ++it )
+  {
+  	Ret += " ";
+  	Ret += std::to_string(it->proc_num); 
+  }
+  
+  Ret += "]";
+  return Ret;
+}

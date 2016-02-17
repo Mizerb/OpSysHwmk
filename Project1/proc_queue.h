@@ -39,6 +39,8 @@ public:
   void change_type( int type_){ type = type_;}
   
   bool is_empty(){ return queue.empty();}
+
+  std::string print_Q();
 };
 
 
