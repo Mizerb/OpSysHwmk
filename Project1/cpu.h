@@ -1,10 +1,25 @@
-
-
+#include "proc_queue.h"
+#include <iostream>
 
 #ifndef CPU_H
 #define CPU_H
 
+class Result
+{
+public:
+  Result(){ task_count = CPU_burst_time = total_wait_time = total_turn_time = context_swaps =0;}
+  int CPU_burst_time;
+  int total_wait_time;
+  int total_turn_time;
+  int context_swaps;
 
+  int task_count;
+
+  void print_me();
+
+  void write_out( FILE* of, std::string name);
+
+};
 
 class Cpu
 { 
@@ -15,16 +30,17 @@ private:
   Proc_Queue proc_q; 
   Proc_Queue inital_q;
 
-  void execute_run( std::ostream& out_put);
+  Result execute_run();
 
   void execute_tick();
    
-  bool not_done(){return true;}  
+  bool not_done();  
 public:
   Cpu(); // Holy shit, gotta make an object
-  void queue_populate( std::istream& in_stream);
+  Result RUN();
+  void queue_populate( FILE* fp);
   void reset();
-  void change_type();
+  void change_type( int i);
   
 };
 
