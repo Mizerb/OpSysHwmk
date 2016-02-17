@@ -3,8 +3,8 @@
 
 bool Proc_compare_burst( const Proc & i , const Proc & j)
 {
-  if( i.burst_time == j.burst_time ) return (i.proc_num < j.proc_num);
-  else return ( i.burst_time < j.burst_time );
+  if( i.inital_burst_time == j.inital_burst_time ) return (i.proc_num < j.proc_num);
+  else return ( i.inital_burst_time < j.inital_burst_time );
 }
 
 bool Proc_compare_proc_numb( const Proc &i, const Proc &j)
