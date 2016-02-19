@@ -7,7 +7,7 @@
 #include <string.h>
 #include <list>
 
-#include "cpu.h"
+
 
 // DEFINES ******************************************************************************
 
@@ -17,6 +17,14 @@
 #define SJF  1
 
 #define DEBUG
+
+#define n  //how the fk is this a tunable constant?
+
+#define m 1
+
+#define t_cs 9
+
+#include "cpu.h"
 // **************************************************************************************
 
 

@@ -60,3 +60,12 @@ std::string Proc_Queue::print_Q() //Yeah, I'm sorry, I like the c outputs but
   Ret += "]";
   return Ret;
 }
+
+std::string Proc_Queue::print_type()
+{
+  if( type == 1)
+  {
+    return "SJF";
+  }
+  else return "FCFS";
+}

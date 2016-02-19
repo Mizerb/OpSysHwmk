@@ -97,6 +97,40 @@ void Cpu::change_type( int i)
   return;
 }
 
+void Cpu::burst_end( Proc dead_proc)
+{
+  dead_proc.num_burst--;
+  is_context_swapping =true;
+  context_countdown = t_cs;
+  if(dead_proc.inital_io_time > 0)
+  {
+    printf("time %lums: P%i completed its CPU burst %s\n", 
+      time,dead_proc.proc_num, PRINT_Q);
+    new_io( dead_proc);
+    return;
+  }
+  if(dead_proc.num_burst > 0)
+  {
+    proc_q.add_proc(dead_proc);
+  }
+  
+
+}
+
+
+void Cpu::new_io(Proc new_proc)
+{
+  new_proc.io_time= new_proc.inital_io_time;
+  io_now.push_back( new_proc );
+
+  printf("time %lums: P%i blocked on I/O %s\n", time,
+    new_proc.proc_num, PRINT_Q);
+}
+
+
+
+
+
 void Cpu::IO_dealings()
 {
   //increments all things in IO;
@@ -110,6 +144,8 @@ void Cpu::IO_dealings()
   }
 }
 
+
+
 void Cpu::execute_tick()
 {
   time++;
@@ -119,14 +155,23 @@ void Cpu::execute_tick()
 
 Result Cpu::execute_run()
 {
-  Result Ret;
+  Result Ret; 
+
+  char name[] = "";
+  printf("time 0ms: Simulator started for %s %s\n",
+    name, PRINT_Q);
+  time = -1; 
   while( not_done())
   {
+    time++; 
     //If No Proc, grab proc
-    if( context_countdown == 0)
+    if( context_countdown == 0 && is_context_swapping == true)
     {
-      // GRAB NEW TASK.
-      context_countdown = -1;
+      // SWAP THE CONTEXT (sing like rock the cash box)
+      // SWAP THE CONTEXT 
+      context_countdown = t_cs;
+      is_context_swapping = false;
+
       burst_now = proc_q.get_next();
       
       burst_now.burst_time = burst_now.inital_burst_time;
@@ -135,13 +180,14 @@ Result Cpu::execute_run()
       printf("time %lums: P%i started using the CPU %s", time, 
         burst_now.proc_num , PRINT_Q ); // Truly evil I know.
     }
-    else if( context_countdown < 0)
+    else if( is_context_swapping == false) //Handle the current Proc
     {
-      
+      burst_now.burst_time--;
+      if(burst_now.burst_time == 0 )
+      {
+        
+      }
     }
-    
-
-
     IO_dealings();
     proc_q.increment();
     //return Ret;

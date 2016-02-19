@@ -30,13 +30,19 @@ private:
   Proc_Queue proc_q; 
   Proc_Queue inital_q;
   
+  Result my_result;
+
   int context_countdown;
+  bool is_context_swapping;
 
   Result execute_run();
 
   void execute_tick();
-   
+
+  void thiser();
+
   bool not_done();
+  void new_io(Proc new_proc);
   void IO_dealings();
 public:
   Cpu(); // Holy shit, gotta make an object

@@ -41,6 +41,7 @@ public:
   bool is_empty(){ return queue.empty();}
 
   std::string print_Q();
+  std::string print_type();
 };
 
 
