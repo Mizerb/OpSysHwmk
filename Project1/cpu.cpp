@@ -234,7 +234,6 @@ void Cpu::increment_IO()
 
 void Cpu::end_of_IO(Proc dieing_proc)
 {
-  char buff[255];
   if( dieing_proc.num_burst == 0 && dieing_proc.inital_io_time > 0)
   {
   	proc_q.add_proc( dieing_proc);
