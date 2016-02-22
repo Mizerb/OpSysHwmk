@@ -12,7 +12,7 @@
 class Core
 {
 public:
-  Core(){ is_context_swapping = true; context_countdown = t_cs+1; 
+  Core(){ is_context_swapping = false; context_countdown = t_cs+1; 
     has_proc =false;}
 
   Proc burst_now;
@@ -22,8 +22,10 @@ public:
   bool has_proc;
 
   bool rdy_for_proc();
+  bool rdy_to_start();
   
   void receive_proc( Proc new_proc);
+  void wait_for_proc();
 
   void increment();
   void start_context_swap();
@@ -63,8 +65,6 @@ private:
 
   Proc_Queue proc_q; 
   Proc_Queue inital_q;
-  
-  Result my_result;
 
   Result execute_run();
 

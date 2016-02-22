@@ -50,7 +50,11 @@ void Result::write_out(FILE* of , std::string name)
 
 void Core::increment()
 {
-  if(is_context_swapping) context_countdown--;
+  if(is_context_swapping)
+  {
+  	context_countdown--;
+  	burst_now.is_context_swap();
+  } 
   else burst_now.in_cpu_incre();
 }
 
@@ -63,7 +67,12 @@ void Core::receive_proc( Proc new_proc)
 
 bool Core::rdy_for_proc()
 {
-  return (is_context_swapping && (context_countdown <= 0));
+  return (!has_proc && !is_context_swapping);
+}
+
+bool Core::rdy_to_start()
+{
+  return (is_context_swapping && (context_countdown==0));
 }
 
 void Core::start_context_swap()
@@ -73,6 +82,13 @@ void Core::start_context_swap()
   has_proc = false;
   return;
 }
+
+void Core::wait_for_proc()
+{
+  is_context_swapping = false;
+  has_proc = false;
+}
+
 
 Cpu::Cpu()
 {
@@ -175,7 +191,7 @@ void Cpu::increment_cores()
   return;
 }
 
-
+/*
 void Cpu::cores_check_all()
 {
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
@@ -190,7 +206,6 @@ void Cpu::cores_check_all()
         it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
       Run_result.context_swaps++;
     }
-    else if( it->has_proc == false) continue;
     else if(it->burst_now.burst_time == 0) //Get process out of CPU
     {
       it->start_context_swap();
@@ -198,13 +213,43 @@ void Cpu::cores_check_all()
     }
   }
 }
+*/
+
+void Cpu::cores_check_all()
+{
+  for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
+  {
+  	if(it->rdy_for_proc()) //Doesn't have a Proc
+  	{
+  	  if(proc_q.is_empty()) continue;
+      
+      it->start_context_swap();
+
+      Run_result.context_swaps++;
+  	}
+  	else if(it->rdy_to_start())
+  	{
+      
+      it->receive_proc( proc_q.get_next() );
+      
+      printf("time %lums: P%i started using the CPU %s\n", time, 
+        it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
+  	}
+    else if(it->burst_now.burst_time == 0 && it->has_proc) //Get process out of CPU
+    {
+      it->wait_for_proc();
+      burst_end(it->burst_now);
+    }
+  }
+}
+
 
 
 
 void Cpu::burst_end( Proc dead_proc)
 {
   dead_proc.num_burst--;
-  if(dead_proc.inital_io_time > 0)
+  if(dead_proc.inital_io_time > 0 && dead_proc.num_burst > 0)
   {
     printf("time %lums: P%i completed its CPU burst %s\n", 
       time,dead_proc.proc_num, PRINT_Q);
@@ -233,7 +278,7 @@ void Cpu::new_io(Proc new_proc)
 
 void Cpu::End_of_Proc(Proc dead_proc)
 {
-  assert(dead_proc.num_burst == 0);
+  assert(dead_proc.num_burst <= 0);
   //TO BE USED IN PROCESS TERMINATION;
   printf("time %lums: P%i terminated %s\n", time, 
   	dead_proc.proc_num, PRINT_Q);
@@ -253,7 +298,13 @@ void Cpu::increment_IO()
 
 void Cpu::end_of_IO(Proc dieing_proc)
 {
-  if(dieing_proc.num_burst == 0) //The proc is dead
+  if( dieing_proc.num_burst == 0 && dieing_proc.inital_io_time > 0)
+  {
+  	proc_q.add_proc( dieing_proc);
+  	printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+  	    PRINT_Q);
+  }
+  else if(dieing_proc.num_burst <= 0) //The proc is dead
   {
     printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
   	    PRINT_Q);
@@ -306,7 +357,7 @@ Result Cpu::execute_run()
   time = -1; 
   //printf( "HERE %s\n", PRINT_Q);
 
-  while( not_done())
+  while( not_done() && time < 200)
   {
     //printf( "FUCK\n");
     //PRINT_Q;

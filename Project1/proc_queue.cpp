@@ -22,6 +22,13 @@ void Proc::in_cpu_incre()
   turn_time++;
   return;
 }
+
+void Proc::is_context_swap()
+{
+  turn_time++;
+  return;
+}
+
 void Proc::in_queue_incre()
 { 
   wait_time++;

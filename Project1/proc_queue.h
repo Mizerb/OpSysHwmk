@@ -19,7 +19,7 @@ public:
   int turn_time;
 
 
-
+  void is_context_swap();
   void in_cpu_incre();
   void in_queue_incre();
   void in_io_incre();
