@@ -75,6 +75,8 @@ int main( int argc , char* argv[])
   
   Result FCFS_result = my_cpu.RUN();
 
+  //FCFS_result.write_out( stderr, "JEB");
+
 #ifdef DEBUG
   //printf("Run 1 executed\n");
   

@@ -53,7 +53,7 @@ void Core::increment()
   if(is_context_swapping)
   {
   	context_countdown--;
-  	burst_now.is_context_swap();
+  	context_hold.is_context_swap();
   } 
   else burst_now.in_cpu_incre();
 }

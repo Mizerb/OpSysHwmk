@@ -13,6 +13,7 @@ public:
   int burst_time;
   int inital_burst_time;
   int num_burst;
+  int inital_num_burst;
   int io_time;
   int inital_io_time;
   int wait_time;

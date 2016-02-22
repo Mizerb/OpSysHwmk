@@ -18,25 +18,25 @@ void Result::print_me()
 
 void Result::add_proc( Proc dead_proc)
 {
-  CPU_burst_time+= (dead_proc.num_burst * dead_proc.inital_burst_time);
+  CPU_burst_time+= (dead_proc.inital_num_burst * dead_proc.inital_burst_time);
   total_wait_time+= dead_proc.wait_time;
   total_turn_time+= dead_proc.turn_time;
   task_count++;
-
-  //printf("TASK_COUNT: %i\n", task_count);
+  
+  //printf("TASK_COUNT: %i\n", CPU_burst_time);
 }
 
 void Result::write_out(FILE* of , std::string name)
 {
   fprintf(of, "Algorithm%s\n", name.c_str());
 
-  double avg_burst = ((double)CPU_burst_time)/((double)task_count); //idk what this is...
+  double avg_burst = ((double)CPU_burst_time)/((double)context_swaps); //idk what this is...
   fprintf(of, "-- average CPU burst time: %.2f  ms\n", avg_burst );
 
-  double avg_wait = ((double)CPU_burst_time)/((double)task_count); 
+  double avg_wait = ((double)(total_wait_time-task_count))/((double)context_swaps); 
   fprintf(of, "-- average wait time: %.2f  ms\n", avg_wait );
 
-  double avg_turn = ((double)CPU_burst_time)/((double)task_count); 
+  double avg_turn = ((double)total_turn_time-task_count)/((double)context_swaps); 
   fprintf(of, "-- average turnaround time: %.2f  ms\n", avg_turn );
 
   
@@ -87,7 +87,7 @@ void Cpu::queue_populate( FILE * fp)
   	sscanf(buff, "%i|%i|%i|%i", 
   	    &(new_proc.proc_num) , 
   	    &(new_proc.inital_burst_time), 
-  	    &(new_proc.num_burst) , 
+  	    &(new_proc.inital_num_burst) , 
   	    &(new_proc.inital_io_time)
   	    );
 /*
@@ -98,6 +98,7 @@ void Cpu::queue_populate( FILE * fp)
   	    (new_proc.inital_io_time));
   	    new_q.print_Q();
 */
+    new_proc.num_burst = new_proc.inital_num_burst;
   	new_q.add_proc(new_proc);
   }
   inital_q = new_q;
