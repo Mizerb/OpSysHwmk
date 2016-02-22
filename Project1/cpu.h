@@ -1,17 +1,25 @@
 #include "proc_queue.h"
 #include <iostream>
 
+#ifndef t_cs
+#define t_cs 9
+#endif
+
+
 #ifndef CPU_H
 #define CPU_H
 
 class Core
 {
 public:
-  Core(){ is_context_swapping = true; context_countdown = t_cs+1;}
+  Core(){ is_context_swapping = true; context_countdown = t_cs+1; 
+    has_proc =false;}
 
   Proc burst_now;
   bool is_context_swapping;
   int context_countdown;
+
+  bool has_proc;
 
   bool rdy_for_proc();
   
@@ -21,29 +29,6 @@ public:
   void start_context_swap();
 };
 
-void Core::increment()
-{
-  if(is_context_swapping) context_countdown--;
-  else burst_now.in_cpu_incre();
-}
-
-void receive_proc( Proc new_proc)
-{
-  burst_now = new_proc;
-  is_context_swapping = false;
-}
-
-bool Core::rdy_for_proc()
-{
-  return (is_context_swapping && (context_countdown == 0));
-}
-
-void Core::start_context_swap()
-{
-  is_context_swapping = true;
-  context_countdown = t_cs;
-  return;
-}
 
 
 class Result
@@ -56,6 +41,8 @@ public:
   int context_swaps;
 
   int task_count;
+  
+  void add_proc( Proc dead_proc);
 
   void print_me();
 
@@ -81,17 +68,24 @@ private:
 
   Result execute_run();
 
-  void execute_tick();
+  void execute_ticking();
+  void execute_checking();
 
   void increment_cores();
+  void cores_check_all();
+  void End_of_Proc(Proc dead_proc);
+
+  void new_io(Proc new_proc);
   void increment_IO();
+  void IO_dealings();
+  void end_of_IO(Proc dieing_proc);
 
   bool not_done();
-  void new_io(Proc new_proc);
-  void IO_dealings();
+  void burst_end( Proc dead_proc);
+
 public:
   Cpu(); // Holy shit, gotta make an object
-  Cpu(int _core_count)
+  Cpu(int _core_count);
   Result RUN();
   void queue_populate( FILE* fp);
   void reset();
@@ -100,3 +94,4 @@ public:
 };
 
 #endif 
+

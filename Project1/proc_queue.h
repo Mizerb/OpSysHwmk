@@ -20,9 +20,9 @@ public:
 
 
 
-  void in_cpu_incre() { return;}
-  void in_queue_incre(){ return;}
-  void in_io_incre(){ return;}
+  void in_cpu_incre();
+  void in_queue_incre();
+  void in_io_incre();
 };
 
 bool Proc_compare_burst( const Proc & i , const Proc & j);
@@ -42,9 +42,12 @@ public:
   
   void increment();
   
-  void change_type( int type_){ type = type_;}
+  void change_type( int type_);
   
   bool is_empty(){ return queue.empty();}
+
+  int get_type(){ return type;}
+  int get_size(){ return queue.size();}
 
   std::string print_Q();
   std::string print_type();

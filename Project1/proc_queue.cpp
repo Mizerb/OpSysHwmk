@@ -1,6 +1,7 @@
 #include "proc_queue.h"
 #include <string>
 #include <stdio.h>
+#include <stdlib.h>
 
 
 bool Proc_compare_burst( const Proc & i , const Proc & j)
@@ -15,7 +16,34 @@ bool Proc_compare_proc_numb( const Proc &i, const Proc &j)
 }
 
 
+void Proc::in_cpu_incre()
+{
+  burst_time--;
+  turn_time++;
+  return;
+}
+void Proc::in_queue_incre()
+{ 
+  wait_time++;
+  turn_time++;
+  return;
+}
+void Proc::in_io_incre()
+{ 
+  //turn_time++; MEHHEHHHEHHHHEHHHEHHHEH
+  io_time--;
+  return;
+}
 
+
+
+void Proc_Queue::change_type(int type_)
+{
+  type = type_;
+  if(type_ == 0 ) queue.sort( Proc_compare_proc_numb);
+  else if(type_ == 1) queue.sort( Proc_compare_burst);
+  else exit(1);
+}
 
 void Proc_Queue::add_proc(Proc to_add)
 {
@@ -60,6 +88,8 @@ std::string Proc_Queue::print_Q() //Yeah, I'm sorry, I like the c outputs but
   }
   
   Ret += "]";
+
+  //printf( "%s\n", Ret.c_str());
   return Ret;
 }
 

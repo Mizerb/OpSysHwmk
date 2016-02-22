@@ -76,7 +76,7 @@ int main( int argc , char* argv[])
   Result FCFS_result = my_cpu.RUN();
 
 #ifdef DEBUG
-  printf("Run 1 executed\n");
+  //printf("Run 1 executed\n");
   
   FCFS_result.print_me();
 #endif
@@ -86,7 +86,7 @@ int main( int argc , char* argv[])
   Result SJF_result = my_cpu.RUN();
 
 #ifdef DEBUG
-  printf("Run 2 executed\n");
+  //printf("Run 2 executed\n");
 
   SJF_result.print_me();
 #endif

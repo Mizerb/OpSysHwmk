@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "cpu.h"
 
@@ -13,6 +14,16 @@ void Result::print_me()
 {
   // if I need this, it is here;
   return;
+}
+
+void Result::add_proc( Proc dead_proc)
+{
+  CPU_burst_time+= (dead_proc.num_burst * dead_proc.inital_burst_time);
+  total_wait_time+= dead_proc.wait_time;
+  total_turn_time+= dead_proc.turn_time;
+  task_count++;
+
+  //printf("TASK_COUNT: %i\n", task_count);
 }
 
 void Result::write_out(FILE* of , std::string name)
@@ -37,8 +48,31 @@ void Result::write_out(FILE* of , std::string name)
   return;
 }
 
+void Core::increment()
+{
+  if(is_context_swapping) context_countdown--;
+  else burst_now.in_cpu_incre();
+}
 
+void Core::receive_proc( Proc new_proc)
+{
+  burst_now = new_proc;
+  is_context_swapping = false;
+  has_proc = true;
+}
 
+bool Core::rdy_for_proc()
+{
+  return (is_context_swapping && (context_countdown <= 0));
+}
+
+void Core::start_context_swap()
+{
+  is_context_swapping = true;
+  context_countdown = t_cs;
+  has_proc = false;
+  return;
+}
 
 Cpu::Cpu()
 {
@@ -47,7 +81,7 @@ Cpu::Cpu()
 
 Cpu::Cpu(int _core_count)
 {
-  temper core;
+  Core temper;
   std::list<Core> temp(_core_count, temper);
   cores = temp;
   time = 0;
@@ -57,8 +91,16 @@ Cpu::Cpu(int _core_count)
 Result Cpu::RUN()
 {
   // internal things and safties!!
-  context_countdown = 9;
-  return execute_run();
+  // Idk if there are any....
+  printf("time 0ms: Simulator started for %s %s\n",
+    (proc_q.print_type()).c_str(), PRINT_Q);
+
+  Result Ret = execute_run();
+
+  printf("time %lums: Simulator ended for %s\n\n\n",
+    time, (proc_q.print_type()).c_str());
+
+  return Ret;
 }
 
 void Cpu::queue_populate( FILE * fp)
@@ -76,27 +118,45 @@ void Cpu::queue_populate( FILE * fp)
   	    &(new_proc.num_burst) , 
   	    &(new_proc.inital_io_time)
   	    );
+/*
   	printf("NEW THING %i|%i|%i|%i\n", 
   		(new_proc.proc_num) , 
   	    (new_proc.inital_burst_time), 
   	    (new_proc.num_burst) , 
   	    (new_proc.inital_io_time));
-
+  	    new_q.print_Q();
+*/
   	new_q.add_proc(new_proc);
   }
-
+  inital_q = new_q;
   return;
 }
 
 bool Cpu::not_done()
 {
-  return proc_q.is_empty();
+  if(Run_result.task_count == inital_q.get_size() )
+  {
+  	//printf( "Dumb shit\n");
+  	return false;
+  }
+/*
+  printf("TASK_COUNT = %i \t inital_q= %i \n" ,
+  	Run_result.task_count, inital_q.get_size());
+  printf("Dickbut\n");
+*/
+  return true;
 }
 
 void Cpu::reset()
 {
   time = 0;
   proc_q = inital_q;
+  Result meh;
+  Run_result = meh;
+  Core temper;
+  std::list<Core> temp(cores.size(), temper);
+  cores = temp;
+  time = 0;
 }
 
 void Cpu::change_type( int i)
@@ -121,14 +181,16 @@ void Cpu::cores_check_all()
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
   {
     if(it->rdy_for_proc())
-    {     
-      it->is_context_swapping = false;
-      
+    { 
+      if(proc_q.is_empty()) continue;
+
       it->receive_proc( proc_q.get_next() );
 
-      printf("time %lums: P%i started using the CPU %s", time, 
-        burst_now.proc_num , PRINT_Q ); // Truly evil I know.
+      printf("time %lums: P%i started using the CPU %s\n", time, 
+        it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
+      Run_result.context_swaps++;
     }
+    else if( it->has_proc == false) continue;
     else if(it->burst_now.burst_time == 0) //Get process out of CPU
     {
       it->start_context_swap();
@@ -153,6 +215,10 @@ void Cpu::burst_end( Proc dead_proc)
   {
     proc_q.add_proc(dead_proc);
   }
+  else
+  {
+  	End_of_Proc(dead_proc);
+  }
 }
 
 
@@ -167,8 +233,39 @@ void Cpu::new_io(Proc new_proc)
 
 void Cpu::End_of_Proc(Proc dead_proc)
 {
+  assert(dead_proc.num_burst == 0);
   //TO BE USED IN PROCESS TERMINATION;
+  printf("time %lums: P%i terminated %s\n", time, 
+  	dead_proc.proc_num, PRINT_Q);
+  
+  //printf("INITAL COUNT = %i\n", inital_q.get_size());
+  Run_result.add_proc( dead_proc);
   return;
+}
+
+void Cpu::increment_IO()
+{
+  for(std::list<Proc>::iterator it= io_now.begin(); it != io_now.end() ; ++it )
+  {
+    it->in_io_incre();
+  }
+}
+
+void Cpu::end_of_IO(Proc dieing_proc)
+{
+  if(dieing_proc.num_burst == 0) //The proc is dead
+  {
+    printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+  	    PRINT_Q);
+    End_of_Proc(dieing_proc);
+  }
+  else
+  {
+  	proc_q.add_proc( dieing_proc);
+  	printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+  	    PRINT_Q);
+  	//DO I note this?
+  }
 }
 
 void Cpu::IO_dealings()
@@ -178,42 +275,51 @@ void Cpu::IO_dealings()
   {
   	if(it->io_time == 0 )
   	{
-  	  printf("time %lums: P%i completed I\\O %s", time, it->proc_num, PRINT_Q);
+  	  end_of_IO(*it);
+  	  it = io_now.erase(it);
   	}
   }
 }
 
 
 
-void Cpu::execute_tick()
+void Cpu::execute_ticking()
 {
   time++;
+  increment_cores();
+  increment_IO();
+  proc_q.increment();
   return;
+}
 
+void Cpu::execute_checking()
+{
+  cores_check_all();
+  IO_dealings();
+  //This will be more complicated with I/O after end of all procs
+  return;
 }
 
 Result Cpu::execute_run()
 {
   Result Ret; 
-
-  char name[] = "";
-  printf("time 0ms: Simulator started for %s %s\n",
-    name, PRINT_Q);
   time = -1; 
+  //printf( "HERE %s\n", PRINT_Q);
+
   while( not_done())
   {
-    time++;
-    increment_cores();
-    increment_IO();
-    proc_q.increment();
-    
+    //printf( "FUCK\n");
+    //PRINT_Q;
+    execute_ticking();
+    // ummm
     //Everything is now up to time;
     // All we need to do is check that we're working
 
 
-    
+    execute_checking();
   
 
   }
+  Ret = Run_result;
   return Ret;
 } 
