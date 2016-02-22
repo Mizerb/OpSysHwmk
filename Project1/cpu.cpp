@@ -234,30 +234,33 @@ void Cpu::increment_IO()
 
 void Cpu::end_of_IO(Proc dieing_proc)
 {
+  char buff[255];
   if( dieing_proc.num_burst == 0 && dieing_proc.inital_io_time > 0)
   {
   	proc_q.add_proc( dieing_proc);
-  	printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+  	sprintf(buff,"time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
   	    PRINT_Q);
   }
   else if(dieing_proc.num_burst <= 0) //The proc is dead
   {
-    printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+    sprintf(buff,"time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
   	    PRINT_Q);
     End_of_Proc(dieing_proc);
   }
   else
   {
   	proc_q.add_proc( dieing_proc);
-  	printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+  	sprintf(buff,"time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
   	    PRINT_Q);
   	//DO I note this?
   }
+  io_stalling = buff;
 }
 
 void Cpu::IO_dealings()
 {
   //increments all things in IO;
+  io_stalling = "";
   for(std::list<Proc>::iterator it= io_now.begin(); it != io_now.end() ; ++it )
   {
   	if(it->io_time == 0 )
@@ -283,6 +286,7 @@ void Cpu::execute_checking()
 {
   IO_dealings();
   cores_check_all();
+  printf("%s", io_stalling.c_str());
   //This will be more complicated with I/O after end of all procs
   return;
 }
