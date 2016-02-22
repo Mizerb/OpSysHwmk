@@ -149,7 +149,7 @@ void Cpu::increment_cores()
   return;
 }
 
-
+/*
 void Cpu::cores_check_all()
 {
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
@@ -171,8 +171,8 @@ void Cpu::cores_check_all()
     }
   }
 }
+*/
 
-/*
 void Cpu::cores_check_all()
 {
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
@@ -197,10 +197,13 @@ void Cpu::cores_check_all()
     {
       it->wait_for_proc();
       burst_end(it->burst_now);
+      if(proc_q.is_empty()) continue;
+      it->start_context_swap();
+      Run_result.context_swaps++;
     }
   }
 }
-*/
+
 
 
 
@@ -303,8 +306,8 @@ void Cpu::execute_ticking()
 
 void Cpu::execute_checking()
 {
-  cores_check_all();
   IO_dealings();
+  cores_check_all();
   //This will be more complicated with I/O after end of all procs
   return;
 }
@@ -315,7 +318,7 @@ Result Cpu::execute_run()
   time = -1; 
   //printf( "HERE %s\n", PRINT_Q);
 
-  while( not_done() && time < 200)
+  while( not_done() )
   {
     //printf( "FUCK\n");
     //PRINT_Q;
