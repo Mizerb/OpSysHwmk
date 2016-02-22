@@ -74,6 +74,7 @@ int main( int argc , char* argv[])
   my_cpu.reset();
   
   Result FCFS_result = my_cpu.RUN();
+  printf("\n");
 
   //FCFS_result.write_out( stderr, "JEB");
 
@@ -86,7 +87,6 @@ int main( int argc , char* argv[])
   my_cpu.change_type(1);
 
   Result SJF_result = my_cpu.RUN();
-
 #ifdef DEBUG
   //printf("Run 2 executed\n");
 
@@ -99,7 +99,7 @@ int main( int argc , char* argv[])
   }
 
   FCFS_result.write_out( of, "FCFS");
-  SJF_result.write_out( of,  "SFJ");
+  SJF_result.write_out( of,  "SJF");
 
   fclose(of);
   

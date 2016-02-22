@@ -55,6 +55,7 @@ void Proc_Queue::change_type(int type_)
 void Proc_Queue::add_proc(Proc to_add)
 {
 	queue.push_back( to_add);
+	if( type == 1 ) queue.sort( Proc_compare_burst);
 	return;
 }
 
