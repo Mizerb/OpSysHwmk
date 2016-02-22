@@ -45,6 +45,15 @@ Cpu::Cpu()
   time =0;
 } 
 
+Cpu::Cpu(int _core_count)
+{
+  temper core;
+  std::list<Core> temp(_core_count, temper);
+  cores = temp;
+  time = 0;
+}
+
+
 Result Cpu::RUN()
 {
   // internal things and safties!!
@@ -97,11 +106,42 @@ void Cpu::change_type( int i)
   return;
 }
 
+void Cpu::increment_cores()
+{
+  for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
+  {
+  	it->increment();
+  }
+  return;
+}
+
+
+void Cpu::cores_check_all()
+{
+  for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
+  {
+    if(it->rdy_for_proc())
+    {     
+      it->is_context_swapping = false;
+      
+      it->receive_proc( proc_q.get_next() );
+
+      printf("time %lums: P%i started using the CPU %s", time, 
+        burst_now.proc_num , PRINT_Q ); // Truly evil I know.
+    }
+    else if(it->burst_now.burst_time == 0) //Get process out of CPU
+    {
+      it->start_context_swap();
+      burst_end(it->burst_now);
+    }
+  }
+}
+
+
+
 void Cpu::burst_end( Proc dead_proc)
 {
   dead_proc.num_burst--;
-  is_context_swapping =true;
-  context_countdown = t_cs;
   if(dead_proc.inital_io_time > 0)
   {
     printf("time %lums: P%i completed its CPU burst %s\n", 
@@ -113,8 +153,6 @@ void Cpu::burst_end( Proc dead_proc)
   {
     proc_q.add_proc(dead_proc);
   }
-  
-
 }
 
 
@@ -127,16 +165,17 @@ void Cpu::new_io(Proc new_proc)
     new_proc.proc_num, PRINT_Q);
 }
 
-
-
-
+void Cpu::End_of_Proc(Proc dead_proc)
+{
+  //TO BE USED IN PROCESS TERMINATION;
+  return;
+}
 
 void Cpu::IO_dealings()
 {
   //increments all things in IO;
   for(std::list<Proc>::iterator it= io_now.begin(); it != io_now.end() ; ++it )
   {
-  	it->io_time--;
   	if(it->io_time == 0 )
   	{
   	  printf("time %lums: P%i completed I\\O %s", time, it->proc_num, PRINT_Q);
@@ -163,34 +202,18 @@ Result Cpu::execute_run()
   time = -1; 
   while( not_done())
   {
-    time++; 
-    //If No Proc, grab proc
-    if( context_countdown == 0 && is_context_swapping == true)
-    {
-      // SWAP THE CONTEXT (sing like rock the cash box)
-      // SWAP THE CONTEXT 
-      context_countdown = t_cs;
-      is_context_swapping = false;
-
-      burst_now = proc_q.get_next();
-      
-      burst_now.burst_time = burst_now.inital_burst_time;
-
-
-      printf("time %lums: P%i started using the CPU %s", time, 
-        burst_now.proc_num , PRINT_Q ); // Truly evil I know.
-    }
-    else if( is_context_swapping == false) //Handle the current Proc
-    {
-      burst_now.burst_time--;
-      if(burst_now.burst_time == 0 )
-      {
-        
-      }
-    }
-    IO_dealings();
+    time++;
+    increment_cores();
+    increment_IO();
     proc_q.increment();
-    //return Ret;
+    
+    //Everything is now up to time;
+    // All we need to do is check that we're working
+
+
+    
+  
+
   }
   return Ret;
 } 

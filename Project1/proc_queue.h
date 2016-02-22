@@ -16,7 +16,13 @@ public:
   int io_time;
   int inital_io_time;
   int wait_time;
-  int turn_time; 
+  int turn_time;
+
+
+
+  void in_cpu_incre() { return;}
+  void in_queue_incre(){ return;}
+  void in_io_incre(){ return;}
 };
 
 bool Proc_compare_burst( const Proc & i , const Proc & j);

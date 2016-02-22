@@ -25,22 +25,24 @@ void Proc_Queue::add_proc(Proc to_add)
 
 Proc Proc_Queue::get_next()
 {
-	Proc Ret;
+  Proc Ret;
 
-	//if( type == 0 ) queue.sort( Proc_compare_proc_numb);
-	if( type == 1 ) queue.sort( Proc_compare_burst);
+  //if( type == 0 ) queue.sort( Proc_compare_proc_numb);
+  if( type == 1 ) queue.sort( Proc_compare_burst);
 
-    Ret = queue.front();
-    queue.pop_front();
+  Ret = queue.front();
+  queue.pop_front();
+    
+  Ret.burst_time = Ret.inital_burst_time;
 
-	return Ret;
+  return Ret;
 }
 
 void Proc_Queue::increment()
 {
   for(std::list<Proc>::iterator it= queue.begin(); it != queue.end() ; ++it )
   {
-  	it->wait_time++; it-> turn_time++; 
+  	it->in_queue_incre();
   }
 }
 

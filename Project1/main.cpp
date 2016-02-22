@@ -18,8 +18,8 @@
 
 #define DEBUG
 
-#define n  //how the fk is this a tunable constant?
-
+#define n  //how the fk is this a tunable constant? 
+           //Detrimed when file is read, held as sizeof the list
 #define m 1
 
 #define t_cs 9
@@ -48,7 +48,7 @@ void test()
 
 int main( int argc , char* argv[])
 {
-  Cpu my_cpu;
+  Cpu my_cpu(m);
   const char r[] = "r";
   const char w[] = "w";
   
@@ -105,6 +105,3 @@ int main( int argc , char* argv[])
 
   return 0;
 }
-
-
-
