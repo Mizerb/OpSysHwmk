@@ -60,12 +60,15 @@ private:
   std::list<Core> cores;
   std::list<Proc> /* * */ io_now;  //I don't know if these will be pointers. 
   
+  char buff[255];
   unsigned long time;
   
   Result Run_result;
 
   Proc_Queue proc_q; 
   Proc_Queue inital_q;
+
+  std::string io_stalling;
 
   Result execute_run();
 
