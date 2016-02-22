@@ -28,8 +28,6 @@ void Result::add_proc( Proc dead_proc)
 
 void Result::write_out(FILE* of , std::string name)
 {
-  if(task_count < 1) task_count = 1;
-
   fprintf(of, "Algorithm%s\n", name.c_str());
 
   double avg_burst = ((double)CPU_burst_time)/((double)task_count); //idk what this is...
@@ -149,30 +147,6 @@ void Cpu::increment_cores()
   return;
 }
 
-/*
-void Cpu::cores_check_all()
-{
-  for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
-  {
-    if(it->rdy_for_proc())
-    { 
-      if(proc_q.is_empty()) continue;
-
-      it->receive_proc( proc_q.get_next() );
-
-      printf("time %lums: P%i started using the CPU %s\n", time, 
-        it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
-      Run_result.context_swaps++;
-    }
-    else if(it->burst_now.burst_time == 0) //Get process out of CPU
-    {
-      it->start_context_swap();
-      burst_end(it->burst_now);
-    }
-  }
-}
-*/
-
 void Cpu::cores_check_all()
 {
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
@@ -181,14 +155,14 @@ void Cpu::cores_check_all()
   	{
   	  if(proc_q.is_empty()) continue;
       
-      it->start_context_swap();
+      it->start_context_swap( proc_q.get_next() );
 
       Run_result.context_swaps++;
   	}
   	else if(it->rdy_to_start())
   	{
       
-      it->receive_proc( proc_q.get_next() );
+      it->receive_proc( it->context_hold );
       
       printf("time %lums: P%i started using the CPU %s\n", time, 
         it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
@@ -198,7 +172,7 @@ void Cpu::cores_check_all()
       it->wait_for_proc();
       burst_end(it->burst_now);
       if(proc_q.is_empty()) continue;
-      it->start_context_swap();
+      it->start_context_swap(proc_q.get_next() );
       Run_result.context_swaps++;
     }
   }

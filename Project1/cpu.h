@@ -18,6 +18,7 @@ public:
   Proc burst_now;
   bool is_context_swapping;
   int context_countdown;
+  Proc context_hold;
 
   bool has_proc;
 
@@ -28,7 +29,7 @@ public:
   void wait_for_proc();
 
   void increment();
-  void start_context_swap();
+  void start_context_swap(Proc new_proc);
 };
 
 

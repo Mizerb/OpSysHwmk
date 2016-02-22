@@ -75,11 +75,12 @@ bool Core::rdy_to_start()
   return (is_context_swapping && (context_countdown==0));
 }
 
-void Core::start_context_swap()
+void Core::start_context_swap( Proc new_proc)
 {
   is_context_swapping = true;
   context_countdown = t_cs;
   has_proc = false;
+  context_hold = new_proc;
   return;
 }
 
