@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 struct expression
 {
@@ -11,5 +13,12 @@ struct expression
 
 int main(int argc, char* argv[])
 {
-  printf("I hate to think on how I'm going to parse a stupid text thing\n");
+    FILE * fp = fopen( argv[1] , "r");
+    if( fp == NULL)
+    {
+        fprintf(stderr , "Incorrect args or file doesn't exist\n");
+        exit(1);
+    }
+    
+    return 0;
 }

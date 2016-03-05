@@ -283,6 +283,7 @@ void Cpu::execute_ticking()
 
 void Cpu::execute_checking()
 {
+  cores_check_all();
   IO_dealings();
   cores_check_all();
   printf("%s", io_stalling.c_str());
