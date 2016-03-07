@@ -16,10 +16,10 @@ typedef struct c_expression
   int arg_count;
   char * raw; 
   
-  int ** upsend_pipes; 
+  int * upsend_pipes; 
   
   
-  int * return_pipe;
+  int return_pipe;
 }exp;
 
 void set_exp( exp *mine)
@@ -28,8 +28,8 @@ void set_exp( exp *mine)
     mine->arguments = (exp*)malloc(20*sizeof(exp));
     mine->arg_count = 0;
     mine->raw = (char*)malloc(MAX_SIZE*sizeof(char));
-    mine->upsend_pipes = NULL;
-    mine->return_pipe = NULL;
+    mine->upsend_pipes = (int*)malloc(10*sizeof(int));
+    mine->return_pipe = 0;
 }
 
 char * find_end( char* start)
@@ -49,6 +49,7 @@ exp int_exp( int a)
 {
     exp ret; set_exp( &ret);
     ret.result = a;
+    ret.operation = '?';
     return ret;
 }
 
@@ -100,7 +101,6 @@ exp parse_exp( char * str , char *start , char * end)
               ret.operation,
               ret.arguments[ret.arg_count-1].result 
               );
-            
         }
     }
     return ret;
@@ -162,10 +162,109 @@ exp parse_exp( char * str , char * unusedz)
     return ret;
 }
 */
-
-int execute()
+int calculate( int base , int to_add , char op)
 {
-    return 0 ;
+    if(op=='+') return base + to_add;
+    if(op=='-') return base - to_add;
+    if(op=='/') return base / to_add;
+    if(op=='*') return base * to_add;
+    if(op=='?')
+    {
+        fprintf(stderr, "This shouldn't be here\n");
+        exit(1);
+    }
+    else
+    {
+        fprintf(stderr, "What the hell %c\n" , op);
+        exit(1);
+    }
+}
+
+void pipe_check( int rc)
+{
+    if( rc == -1)
+    {
+        fprintf(stderr,"Pipe open fked up\n");
+        exit(1);
+    }
+}
+
+void fork_check( int pid)
+{
+    if( pid == -1)
+    {
+        fprintf(stderr,"Fork open fked up\n");
+        exit(1);
+    }
+}
+
+void exec( exp  mine)
+{
+    if( mine.operation == '?')
+    {
+        printf("PROCESS %d: Sending \"%d\" on pipe to parent\n",
+          getpid(), mine.result );
+        write( mine.return_pipe, &(mine.result), sizeof(int));
+        close( mine.return_pipe);
+        exit(0);
+    }
+    
+    printf("PROCESS %d: Starting \"%c\" operation\n",
+      getpid(), mine.operation);
+    
+    int i = 0 , rc;
+    for( i = 0 ; i < mine.arg_count ; i++ )
+    {
+        int * pipy = (int *) malloc( sizeof(int) * 2);
+        rc = pipe( pipy);
+        pipe_check( rc);
+        
+        int pid = fork();
+        fork_check(pid);
+        
+        if( pid == 0) // CHILD
+        {
+            close(pipy[0]);// close read end;
+            exp child = mine.arguments[i];
+            child.return_pipe = pipy[1];
+            exec(child);
+        }
+        else          //Parent
+        {
+            close(pipy[1]);// close write end;
+            mine.upsend_pipes[i] = pipy[0];
+            
+        }
+        
+    }
+    mine.result = 0;
+    for( i = 0 ; i< mine.arg_count ; i++ )
+    {
+        int temp;
+        int bytes = read(mine.upsend_pipes[i],&temp,sizeof(int) );
+        mine.result = calculate( mine.result , temp, mine.operation);
+        close(mine.upsend_pipes[i]);
+    }
+    
+    if(mine.return_pipe == 0)
+    {
+        printf("PROCESS %d: Processed \"(%s)\"; final answer is \"%d\"\n",
+          getpid(),
+          mine.raw,
+          mine.result);
+    }
+    else
+    {
+        printf("PROCESS %d: Processed \"(%s)\"; sending \"%d\" on pipe to parent\n",
+          getpid(),
+          mine.raw,
+          mine.result);
+        write( mine.return_pipe, &(mine.result), sizeof(int));
+        close( mine.return_pipe);
+        exit(0);
+    }
+    
+    return;
 }
 
 
@@ -188,7 +287,7 @@ int main(int argc, char* argv[])
     
     exp ret = parse_exp(BUFFER,BUFFER+1, find_end(BUFFER+1) );
     
-    
+    exec(ret);
     
     
     
