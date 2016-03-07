@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <string.h>
 
 
 #define MAX_SIZE 255
 
-char * unused;
 
 typedef struct c_expression
 {
@@ -41,7 +42,7 @@ char * find_end( char* start)
         if(start[i] == '(') count++;
         if(start[i] == ')') count--;
     }
-    fprintf(stderr, "Unable to find ending\n");
+    fprintf(stdout, "Unable to find ending\n");
     exit(1);
 }
 
@@ -61,7 +62,7 @@ exp parse_exp( char * str , char *start , char * end)
     strncpy(ret.raw ,  start , end - start);
     //printf("%s\n" , ret.raw);
     
-    printf( "STARTING: %c\n" , *start);
+    //printf( "STARTING: %c\n" , *start);
     if( *start == '+' ) ret.operation = '+';
     else if( *start == '*' ) ret.operation = '*';
     else if( *start == '/' ) ret.operation = '/';
@@ -69,7 +70,7 @@ exp parse_exp( char * str , char *start , char * end)
     else
     {
         char * tok  = strtok( start , " " );
-        fprintf(stderr , 
+        fprintf(stdout , 
           "PROCESS %d: ERROR: unknown \"%s\" operator\n",
            getpid(), tok);
         exit(1);
@@ -96,17 +97,32 @@ exp parse_exp( char * str , char *start , char * end)
             //printf("%c -> %d\n", ret.operation , to_add.result);
             ret.arguments[ret.arg_count++]= to_add;
             
-            
+            /*
             printf( "%c -> %d\n" , 
               ret.operation,
               ret.arguments[ret.arg_count-1].result 
               );
+            */
         }
     }
+    
+    if(ret.operation != '?' && ret.arg_count <= 1)
+    {
+        fprintf(stdout, "PROCESS %d: ERROR: not enough operands\n",
+          getpid() );
+        exit(1);
+    }
+    
     return ret;
 }
 
 /*
+I don't like strtok. It doesn't work how I want it to.
+Therefore I will not use this funtion. 
+And just leave it here. 
+To be sad.
+And parsed out.
+Forever uncomplied. 
 exp parse_exp( char * str , char * unusedz)
 {
     exp ret; //= malloc(sizeof(exp));
@@ -241,7 +257,10 @@ void exec( exp  mine)
     for( i = 0 ; i< mine.arg_count ; i++ )
     {
         int temp;
+        //insert waiting statement and reading statement from parent
+        // for error checking
         int bytes = read(mine.upsend_pipes[i],&temp,sizeof(int) );
+        if( bytes != sizeof(int)) exit(1);
         if( i == 0 ) mine.result = temp;
         else mine.result = calculate( mine.result , temp, mine.operation);
         close(mine.upsend_pipes[i]);
@@ -268,11 +287,15 @@ void exec( exp  mine)
     return;
 }
 
-
-
 int main(int argc, char* argv[])
 {
     char BUFFER[MAX_SIZE];
+    
+    if( argc != 2)
+    {
+        fprintf(stderr, "Incorrect number of args\n");
+        exit(1);
+    }
     
     FILE * fp = fopen( argv[1] , "r");
     if( fp == NULL)
