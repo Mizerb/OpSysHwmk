@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -14,6 +15,7 @@ typedef struct c_expression
   int result;
   
   struct c_expression * arguments;
+  pid_t * child_pids;
   int arg_count;
   char * raw; 
   
@@ -214,6 +216,21 @@ void fork_check( int pid)
     }
 }
 
+void exit_check(int status , int pid)
+{
+    if( WIFSIGNALED(status) )
+    {
+        printf("PARENT: child %d terminated abnormally\n", 
+            pid);
+    }
+    if(WIFEXITED(status))
+    {
+        if(WEXITSTATUS(status)!=0)
+        printf("PARENT: child %d erminated with nonzero exit status %d\n", 
+            pid, WEXITSTATUS(status));
+    }
+}
+
 void exec( exp  mine)
 {
     if( mine.operation == '?')
@@ -222,20 +239,21 @@ void exec( exp  mine)
           getpid(), mine.result );
         write( mine.return_pipe, &(mine.result), sizeof(int));
         close( mine.return_pipe);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     
     printf("PROCESS %d: Starting \"%c\" operation\n",
       getpid(), mine.operation);
     
     int i = 0 , rc;
+    mine.child_pids = (pid_t*) malloc(sizeof(pid_t)*mine.arg_count);
     for( i = 0 ; i < mine.arg_count ; i++ )
     {
         int * pipy = (int *) malloc( sizeof(int) * 2);
         rc = pipe( pipy);
         pipe_check( rc);
         
-        int pid = fork();
+        pid_t pid = fork();
         fork_check(pid);
         
         if( pid == 0) // CHILD
@@ -249,14 +267,19 @@ void exec( exp  mine)
         {
             close(pipy[1]);// close write end;
             mine.upsend_pipes[i] = pipy[0];
-            
+            mine.child_pids[i] = pid;
         }
         
     }
     mine.result = 0;
     for( i = 0 ; i< mine.arg_count ; i++ )
     {
-        int temp;
+        int temp, status;
+        
+        waitpid(mine.child_pids[i],&status,0 );
+        
+        exit_check(status, (int)mine.child_pids[i]);
+        
         //insert waiting statement and reading statement from parent
         // for error checking
         int bytes = read(mine.upsend_pipes[i],&temp,sizeof(int) );
@@ -281,7 +304,7 @@ void exec( exp  mine)
           mine.result);
         write( mine.return_pipe, &(mine.result), sizeof(int));
         close( mine.return_pipe);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     
     return;
@@ -313,7 +336,5 @@ int main(int argc, char* argv[])
     
     exec(ret);
     
-    
-    
-    return 0;
+    return EXIT_SUCCESS;
 }
