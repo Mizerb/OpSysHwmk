@@ -49,30 +49,61 @@ exp int_exp( int a)
 {
     exp ret; set_exp( &ret);
     ret.result = a;
+    return ret;
 }
 
 exp parse_exp( char * str , char *start , char * end)
 {
     exp ret;
-    set_exp( ret);
-
+    set_exp( &ret);
+    
+    strncpy(ret.raw ,  start , end - start);
+    //printf("%s\n" , ret.raw);
+    
+    printf( "STARTING: %c\n" , *start);
     if( *start == '+' ) ret.operation = '+';
-    if( *start == '*' ) ret.operation = '+';
-    if( *start == '/' ) ret.operation = '+';
-    if( *start == '-' ) ret.operation = '+';
+    else if( *start == '*' ) ret.operation = '*';
+    else if( *start == '/' ) ret.operation = '/';
+    else if( *start == '-' ) ret.operation = '-';
     else
     {
         char * tok  = strtok( start , " " );
-        fprintf(stderr , "PROCESS %d: ERROR: unknown \"%s\" operator\n", getpid(), tok);
+        fprintf(stderr , 
+          "PROCESS %d: ERROR: unknown \"%s\" operator\n",
+           getpid(), tok);
         exit(1);
     }
     
     start++;
-    for(; start != end ; start++)
+    for(; start <end ; start++)
     {
-        
+        if( *start == '(' )
+        {
+            char* a_end = find_end( start +1 );
+            
+            ret.arguments[ret.arg_count++]=
+              parse_exp( str, start +1 , a_end);
+            start = a_end +1;
+        }
+        else if( *start == ' ') continue;
+        else if( (*start >= '0' && *start <= '9') || *start=='-' )
+        {
+            int temp = atoi( start);
+            while( *start != ' ' && *start != ')') start++;
+            //printf( "FOUND %d\n" , temp);
+            exp to_add = int_exp(temp);
+            //printf("%c -> %d\n", ret.operation , to_add.result);
+            ret.arguments[ret.arg_count++]= to_add;
+            
+            
+            printf( "%c -> %d\n" , 
+              ret.operation,
+              ret.arguments[ret.arg_count-1].result 
+              );
+            
+        }
     }
-    
+    return ret;
 }
 
 /*
@@ -132,6 +163,13 @@ exp parse_exp( char * str , char * unusedz)
 }
 */
 
+int execute()
+{
+    return 0 ;
+}
+
+
+
 int main(int argc, char* argv[])
 {
     char BUFFER[MAX_SIZE];
@@ -147,12 +185,9 @@ int main(int argc, char* argv[])
     {
         if( strstr(BUFFER,"#") != NULL) continue;
     }
-
     
-    char * stuff;
-    char * tok = strtok_r( BUFFER , " " , &unused);
+    exp ret = parse_exp(BUFFER,BUFFER+1, find_end(BUFFER+1) );
     
-    exp ret = parse_exp(BUFFER+1,stuff);
     
     
     
