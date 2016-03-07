@@ -242,7 +242,8 @@ void exec( exp  mine)
     {
         int temp;
         int bytes = read(mine.upsend_pipes[i],&temp,sizeof(int) );
-        mine.result = calculate( mine.result , temp, mine.operation);
+        if( i == 0 ) mine.result = temp;
+        else mine.result = calculate( mine.result , temp, mine.operation);
         close(mine.upsend_pipes[i]);
     }
     
