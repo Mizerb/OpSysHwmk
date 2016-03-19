@@ -1,12 +1,14 @@
 /* PROC_LIST_H */
 
+#include <tuple>
+
 class Proc_list
 {
 private:
-    std::list<std::tuple<int,Proc>> Proc_in_list;
+    std::list<std::tuple<int,Proc>> list;
 
 public:
-    bool new_proc(int time);
-    Proc get_new_proc();
+    bool next_proc(int time);
+    Proc get_next_proc();
     void Add_proc(Proc a_proc , int time); 
 }
