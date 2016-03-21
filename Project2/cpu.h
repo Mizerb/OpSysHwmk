@@ -65,8 +65,9 @@ private:
   
   Result Run_result;
 
-  Proc_Queue proc_q; 
-  Proc_Queue inital_q;
+  Proc_Queue proc_q;
+
+  Proc_list inital_set;
 
   std::string io_stalling;
 
@@ -83,6 +84,8 @@ private:
   void increment_IO();
   void IO_dealings();
   void end_of_IO(Proc dieing_proc);
+
+  void queue_working();
 
   bool not_done();
   void burst_end( Proc dead_proc);

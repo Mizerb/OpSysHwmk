@@ -79,13 +79,15 @@ void Cpu::queue_populate( FILE * fp)
 {
   //const char r[] = "r";
   char buff[BUFF_LEN];
-  Proc_Queue new_q(0);
+  Proc_list new_q;
   while( fgets(buff, BUFF_LEN , fp ))
   {
-  	if( strstr(buff, "#") != NULL) continue;
+  	int a_time;
+    if( strstr(buff, "#") != NULL) continue;
   	Proc new_proc;
   	sscanf(buff, "%i|%i|%i|%i", 
   	    &(new_proc.proc_num) , 
+        &(a_time)
   	    &(new_proc.inital_burst_time), 
   	    &(new_proc.inital_num_burst) , 
   	    &(new_proc.inital_io_time)
@@ -99,15 +101,15 @@ void Cpu::queue_populate( FILE * fp)
   	    new_q.print_Q();
 */
     new_proc.num_burst = new_proc.inital_num_burst;
-  	new_q.add_proc(new_proc);
+  	new_q.Add_proc(new_proc , a_time);
   }
-  inital_q = new_q;
+  inital_set = new_q;
   return;
 }
 
 bool Cpu::not_done()
 {
-  if(Run_result.task_count == inital_q.get_size() )
+  if(Run_result.task_count == inital_set.get_size() )
   {
   	//printf( "Dumb shit\n");
   	return false;
@@ -283,6 +285,7 @@ void Cpu::execute_ticking()
 
 void Cpu::execute_checking()
 {
+  queue_working();
   cores_check_all();
   IO_dealings();
   cores_check_all();

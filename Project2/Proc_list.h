@@ -10,5 +10,5 @@ private:
 public:
     bool next_proc(int time);
     Proc get_next_proc();
-    void Add_proc(Proc a_proc , int time); 
+    void Add_proc(Proc a_proc , int a_time); 
 }

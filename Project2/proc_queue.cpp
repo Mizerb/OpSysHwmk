@@ -42,8 +42,7 @@ void Proc::in_io_incre()
   return;
 }
 
-
-
+//This will be weird
 void Proc_Queue::change_type(int type_)
 {
   type = type_;
@@ -52,6 +51,7 @@ void Proc_Queue::change_type(int type_)
   else exit(1);
 }
 
+//OK need a new funtion for inital things
 void Proc_Queue::add_proc(Proc to_add)
 {
 	queue.push_back( to_add);
