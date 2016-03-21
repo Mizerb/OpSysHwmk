@@ -68,6 +68,7 @@ private:
   Proc_Queue proc_q;
 
   Proc_list inital_set;
+  Proc_list working_set;
 
   std::string io_stalling;
 

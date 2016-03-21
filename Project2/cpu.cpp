@@ -125,13 +125,13 @@ bool Cpu::not_done()
 void Cpu::reset()
 {
   time = 0;
-  proc_q = inital_q;
+  inital_set = working_set;
   Result meh;
   Run_result = meh;
   Core temper;
   std::list<Core> temp(cores.size(), temper);
   cores = temp;
-  time = 0;
+  time = 0;  //just to be sure
 }
 
 void Cpu::change_type( int i)
@@ -139,6 +139,17 @@ void Cpu::change_type( int i)
   inital_q.change_type(i);
   proc_q.change_type(i);
   return;
+}
+
+void Cpu::queue_working()
+{
+  while(working_set.next_proc(time))
+  {
+    Proc a_proc = working_set.get_next_proc()
+    proc_q.add_proc(a_proc);
+    printf("time %lums: P%i arrived %s\n", time, a_proc.proc_num,
+      PRINT_Q);
+  }
 }
 
 void Cpu::increment_cores()

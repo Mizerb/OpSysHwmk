@@ -1,7 +1,7 @@
 #include <list>
 #include <string>
-#include <Proc.h> 
-#include <Proc_list.h>
+#include "Proc.h"
+#include "Proc_list.h"
 
 
 #ifndef PROC_QUEUE_H
