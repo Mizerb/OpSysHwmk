@@ -13,8 +13,7 @@
 
 #define file_name "processes.txt"
 
-#define FCFS 0
-#define SJF  1
+
 
 #define DEBUG
 
@@ -22,7 +21,6 @@
            //Detrimed when file is read, held as sizeof the list
 #define m 1
 
-#define t_cs 9
 
 #include "cpu.h"
 // **************************************************************************************
@@ -70,7 +68,7 @@ int main( int argc , char* argv[])
 
   fclose(fp);
 
-  my_cpu.change_type(0);
+  my_cpu.change_type(FCFS_);
   my_cpu.reset();
   
   Result FCFS_result = my_cpu.RUN();
@@ -84,7 +82,7 @@ int main( int argc , char* argv[])
   FCFS_result.print_me();
 #endif
   my_cpu.reset();
-  my_cpu.change_type(1);
+  my_cpu.change_type(SRT_);
 
   Result SRT_result = my_cpu.RUN();
 #ifdef DEBUG
@@ -94,7 +92,7 @@ int main( int argc , char* argv[])
 #endif
 
   my_cpu.reset();
-  my_cpu.change_type(2);
+  my_cpu.change_type(RR_);
 
   Result RR_result = my_cpu.RUN();
 #ifdef DEBUG

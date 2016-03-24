@@ -29,6 +29,8 @@ public:
   int get_type(){ return type;}
   int get_size(){ return queue.size();}
 
+  Proc top();
+
   std::string print_Q();
   std::string print_type();
 };

@@ -48,8 +48,10 @@ void Core::wait_for_proc()
 }
 
 */
+
 void Core::increment()
 {
+  slice_time--;
   if(is_context_swapping)
   {
   	context_countdown--;
@@ -63,6 +65,7 @@ void Core::receive_proc( Proc new_proc)
   burst_now = new_proc;
   is_context_swapping = false;
   has_proc = true;
+  slice_time = t_slice;
 }
 
 bool Core::rdy_for_proc()
@@ -88,4 +91,9 @@ void Core::wait_for_proc()
 {
   is_context_swapping = false;
   has_proc = false;
+}
+
+bool Core::time_expired()
+{
+  return (slice_time <= 0); 
 }

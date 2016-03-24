@@ -1,3 +1,5 @@
+#include "cpu.h"
+#include <stdio.h>
 
 void Result::print_me()
 {

@@ -46,8 +46,8 @@ void Proc::in_io_incre()
 void Proc_Queue::change_type(int type_)
 {
   type = type_;
-  if(type_ == 0 ) queue.sort( Proc_compare_proc_numb);
-  else if(type_ == 1) queue.sort( Proc_compare_burst);
+  if(type_ == FCFS_ ) queue.sort( Proc_compare_proc_numb);
+  else if(type_ == SRT_) queue.sort( Proc_compare_burst);
   else exit(1);
 }
 
@@ -64,7 +64,7 @@ Proc Proc_Queue::get_next()
   Proc Ret;
 
   //if( type == 0 ) queue.sort( Proc_compare_proc_numb);
-  if( type == 1 ) queue.sort( Proc_compare_burst);
+  if( type == SRT_ ) queue.sort( Proc_compare_burst);
 
   Ret = queue.front();
   queue.pop_front();
@@ -74,6 +74,11 @@ Proc Proc_Queue::get_next()
   return Ret;
 }
 
+Proc Proc_Queue::top()
+{
+  return queue.front();
+}
+
 void Proc_Queue::increment()
 {
   for(std::list<Proc>::iterator it= queue.begin(); it != queue.end() ; ++it )
@@ -81,7 +86,6 @@ void Proc_Queue::increment()
   	it->in_queue_incre();
   }
 }
-
 
 std::string Proc_Queue::print_Q() //Yeah, I'm sorry, I like the c outputs but
 {                                // I want the ease of C++ strings... 
@@ -103,9 +107,8 @@ std::string Proc_Queue::print_Q() //Yeah, I'm sorry, I like the c outputs but
 
 std::string Proc_Queue::print_type()
 {
-  if( type == 1)
-  {
-    return "SJF";
-  }
-  else return "FCFS";
+  if(type == SRT_ ) return "SJF";
+  if(type == RR_  ) return "RR";
+  if(type == FCFS_) return "FCFS";
+  else return "FUCK FUCK FUCK";
 }

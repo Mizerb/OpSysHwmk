@@ -1,10 +1,6 @@
 #include "proc_queue.h"
 #include <iostream>
 
-#ifndef t_cs
-#define t_cs 9
-#endif
-
 
 #ifndef CPU_H
 #define CPU_H
@@ -20,6 +16,8 @@ public:
   int context_countdown;
   Proc context_hold;
 
+  int slice_time;
+
   bool has_proc;
 
   bool rdy_for_proc();
@@ -30,6 +28,8 @@ public:
 
   void increment();
   void start_context_swap(Proc new_proc);
+
+  bool time_expired();
 };
 
 
@@ -62,10 +62,12 @@ private:
   
   char buff[255];
   unsigned long time;
+  int type;
   
   Result Run_result;
 
   Proc_Queue proc_q;
+  Proc_Queue arrival_q;
 
   Proc_list inital_set;
   Proc_list working_set;
@@ -90,6 +92,10 @@ private:
 
   bool not_done();
   void burst_end( Proc dead_proc);
+
+  void RR_core_walk();
+  void SRT_core_walk();
+  void core_walk();
 
 public:
   Cpu(); // Holy shit, gotta make an object
