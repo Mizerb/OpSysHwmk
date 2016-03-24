@@ -86,12 +86,23 @@ int main( int argc , char* argv[])
   my_cpu.reset();
   my_cpu.change_type(1);
 
-  Result SJF_result = my_cpu.RUN();
+  Result SRT_result = my_cpu.RUN();
 #ifdef DEBUG
   //printf("Run 2 executed\n");
 
-  SJF_result.print_me();
+  SRT_result.print_me();
 #endif
+
+  my_cpu.reset();
+  my_cpu.change_type(2);
+
+  Result RR_result = my_cpu.RUN();
+#ifdef DEBUG
+  //printf("Run 2 executed\n");
+
+  RR_result.print_me();
+#endif
+
   FILE * of = fopen( argv[2], w);
   if( of == NULL)
   {
@@ -99,7 +110,8 @@ int main( int argc , char* argv[])
   }
 
   FCFS_result.write_out( of, "FCFS");
-  SJF_result.write_out( of,  "SJF");
+  SRT_result.write_out( of,  "SRT");
+  RR_result.write_out( of, "RR");
 
   fclose(of);
   
