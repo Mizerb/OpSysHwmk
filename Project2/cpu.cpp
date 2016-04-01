@@ -10,45 +10,12 @@
 
 #define PRINT_Q (proc_q.print_Q()).c_str()
 
-void Result::print_me()
-{
-  // if I need this, it is here;
-  return;
-}
-
-void Result::add_proc( Proc dead_proc)
-{
-  CPU_burst_time+= (dead_proc.inital_num_burst * dead_proc.inital_burst_time);
-  total_wait_time+= dead_proc.wait_time;
-  total_turn_time+= dead_proc.turn_time;
-  task_count++;
-  
-  //printf("TASK_COUNT: %i\n", CPU_burst_time);
-}
-
-void Result::write_out(FILE* of , std::string name)
-{
-  fprintf(of, "Algorithm %s\n", name.c_str());
-
-  double avg_burst = ((double)CPU_burst_time)/((double)context_swaps); //idk what this is...
-  fprintf(of, "-- average CPU burst time: %.2f ms\n", avg_burst );
-
-  double avg_wait = ((double)(total_wait_time-task_count))/((double)context_swaps); 
-  fprintf(of, "-- average wait time: %.2f ms\n", avg_wait );
-
-  double avg_turn = ((double)total_turn_time-task_count)/((double)context_swaps); 
-  fprintf(of, "-- average turnaround time: %.2f ms\n", avg_turn );
-
-  
-  fprintf(of, "-- total number of context switches: %i\n", context_swaps );
-
-
-  return;
-}
-
 Cpu::Cpu()
 {
   time =0;
+  type = 0;
+  Proc_Queue temp(SRT_);
+  arrival_q = temp;
 } 
 
 Cpu::Cpu(int _core_count)
@@ -58,7 +25,6 @@ Cpu::Cpu(int _core_count)
   cores = temp;
   time = 0;
 }
-
 
 Result Cpu::RUN()
 {
@@ -85,9 +51,9 @@ void Cpu::queue_populate( FILE * fp)
   	int a_time;
     if( strstr(buff, "#") != NULL) continue;
   	Proc new_proc;
-  	sscanf(buff, "%i|%i|%i|%i", 
+  	sscanf(buff, "%i|%i|%i|%i|%i", 
   	    &(new_proc.proc_num) , 
-        &(a_time)
+        &(a_time),
   	    &(new_proc.inital_burst_time), 
   	    &(new_proc.inital_num_burst) , 
   	    &(new_proc.inital_io_time)
@@ -136,8 +102,9 @@ void Cpu::reset()
 
 void Cpu::change_type( int i)
 {
-  inital_q.change_type(i);
-  proc_q.change_type(i);
+  Proc_Queue new_queue(i);
+  proc_q = new_queue;
+  type = i;
   return;
 }
 
@@ -145,7 +112,7 @@ void Cpu::queue_working()
 {
   while(working_set.next_proc(time))
   {
-    Proc a_proc = working_set.get_next_proc()
+    Proc a_proc = working_set.get_next_proc();
     proc_q.add_proc(a_proc);
     printf("time %lums: P%i arrived %s\n", time, a_proc.proc_num,
       PRINT_Q);
@@ -163,24 +130,80 @@ void Cpu::increment_cores()
 
 void Cpu::cores_check_all()
 {
+  if(type == FCFS_ ) core_walk();
+  if(type == SRT_ ) SRT_core_walk();
+  if(type == RR_ ) RR_core_walk();
+}
+
+void Cpu::SRT_core_walk()
+{
+  core_walk();
+  bool swapping_check = true;
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
   {
-  	if(it->rdy_for_proc()) //Doesn't have a Proc
-  	{
-  	  if(proc_q.is_empty()) continue;
+    // Stupid pre-emptying thing, why do arrival times have to be delayed?
+    swapping_check &= it->is_context_swapping;
+    if( arrival_q.is_empty() || it->is_context_swapping) continue; // Done
+
+    if(it->burst_now.burst_time < arrival_q.top().burst_time ) // Prempt
+    {
+      printf("time %lums: P%i arrived, preempting P%i %s\n", time, arrival_q.top().proc_num,
+        it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
+
+      proc_q.add_proc(it->burst_now);
+
+      it->start_context_swap( arrival_q.get_next() );
+
+      Run_result.context_swaps++;
+    }
+  }
+
+  if(swapping_check)
+  {
+    while( !(arrival_q.is_empty()))
+    {
+      Proc next = arrival_q.get_next();
+      proc_q.add_proc( next);
+      printf("time %lums: P%i arrived %s\n", time, 
+        next.proc_num , PRINT_Q ); // Truly evil I know.
+    }
+  }
+}
+
+void Cpu::RR_core_walk()
+{
+  for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
+  {
+    if(it->time_expired())
+    {
+      if(proc_q.is_empty()) continue;
+      //Premet this bitch
+      
+      printf("time %lums: Time slice expired, preempting P%i %s\n", time, 
+        it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
+
+      proc_q.add_proc(it->burst_now);
+
+      it->start_context_swap( proc_q.get_next() );
+
+      Run_result.context_swaps++;
+    }
+    else if(it->rdy_for_proc()) //Doesn't have a Proc
+    {
+      if(proc_q.is_empty()) continue;
       
       it->start_context_swap( proc_q.get_next() );
 
       Run_result.context_swaps++;
-  	}
-  	else if(it->rdy_to_start())
-  	{
+    }
+    else if(it->rdy_to_start())
+    {
       
       it->receive_proc( it->context_hold );
       
       printf("time %lums: P%i started using the CPU %s\n", time, 
         it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
-  	}
+    }
     else if(it->burst_now.burst_time == 0 && it->has_proc) //Get process out of CPU
     {
       it->wait_for_proc();
@@ -192,6 +215,37 @@ void Cpu::cores_check_all()
   }
 }
 
+
+void Cpu::core_walk()
+{
+  for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
+  {
+    if(it->rdy_for_proc()) //Doesn't have a Proc
+    {
+      if(proc_q.is_empty()) continue;
+      
+      it->start_context_swap( proc_q.get_next() );
+
+      Run_result.context_swaps++;
+    }
+    else if(it->rdy_to_start())
+    {
+      
+      it->receive_proc( it->context_hold );
+      
+      printf("time %lums: P%i started using the CPU %s\n", time, 
+        it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
+    }
+    else if(it->burst_now.burst_time == 0 && it->has_proc) //Get process out of CPU
+    {
+      it->wait_for_proc();
+      burst_end(it->burst_now);
+      if(proc_q.is_empty()) continue;
+      it->start_context_swap(proc_q.get_next() );
+      Run_result.context_swaps++;
+    }
+  }
+}
 
 
 
@@ -291,6 +345,7 @@ void Cpu::execute_ticking()
   increment_cores();
   increment_IO();
   proc_q.increment();
+  arrival_q.increment();
   return;
 }
 

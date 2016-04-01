@@ -13,8 +13,7 @@
 
 #define file_name "processes.txt"
 
-#define FCFS 0
-#define SJF  1
+
 
 #define DEBUG
 
@@ -22,7 +21,6 @@
            //Detrimed when file is read, held as sizeof the list
 #define m 1
 
-#define t_cs 9
 
 #include "cpu.h"
 // **************************************************************************************
@@ -70,7 +68,7 @@ int main( int argc , char* argv[])
 
   fclose(fp);
 
-  my_cpu.change_type(0);
+  my_cpu.change_type(FCFS_);
   my_cpu.reset();
   
   Result FCFS_result = my_cpu.RUN();
@@ -84,14 +82,25 @@ int main( int argc , char* argv[])
   FCFS_result.print_me();
 #endif
   my_cpu.reset();
-  my_cpu.change_type(1);
+  my_cpu.change_type(SRT_);
 
-  Result SJF_result = my_cpu.RUN();
+  Result SRT_result = my_cpu.RUN();
 #ifdef DEBUG
   //printf("Run 2 executed\n");
 
-  SJF_result.print_me();
+  SRT_result.print_me();
 #endif
+
+  my_cpu.reset();
+  my_cpu.change_type(RR_);
+
+  Result RR_result = my_cpu.RUN();
+#ifdef DEBUG
+  //printf("Run 2 executed\n");
+
+  RR_result.print_me();
+#endif
+
   FILE * of = fopen( argv[2], w);
   if( of == NULL)
   {
@@ -99,7 +108,8 @@ int main( int argc , char* argv[])
   }
 
   FCFS_result.write_out( of, "FCFS");
-  SJF_result.write_out( of,  "SJF");
+  SRT_result.write_out( of,  "SRT");
+  RR_result.write_out( of, "RR");
 
   fclose(of);
   
