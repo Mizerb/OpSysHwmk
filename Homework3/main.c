@@ -10,15 +10,11 @@
 #include <sys/stat.h>
 
 #define MAX_WORD_SIZE 10000  // Make smaller if you wish, had to avoid stack 
-#define INITAL_LIST_SIZE 16  //    smashing. Was terrible
+#define INITAL_LIST_SIZE 16  //    smashing. Was terrible. Had me stuck for 1/2 hour
 #define MAX_FILE_COUNT 128
-
-
 
 pthread_mutex_t index_mutex =PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t alloc_mutex =PTHREAD_MUTEX_INITIALIZER;
-
-
 
 void mem_error()
 {
@@ -67,8 +63,20 @@ word_list * new_word_list()
   return ret;
 }
 
+/* For this function, I elected to use 2 mutexes, which seemed like what the
+ * Homework document was suggesting. I'm not entirly sure, but here it is. 
+ * All other operations (reading, copying, allocating) are done in parrellel,
+ * leaving the list realloc and the index grabbing as tasks I needed to synronize.
+ * I might have done the alloc_mutex section differently, but I didn't want to lock
+ * a mutex in another mutex. So we're left with this, slight mess. 
+ * I also thought about having the check size outside the mutex lock, however,
+ * doing that would have caused all the threads to see the size issue and attempt
+ * to do the realloc. So it kinda made sense to just lock that check for safty. 
+ */
+
 void append_word_list( word_list * list , word new_word)
 {
+  
   pthread_mutex_lock( &alloc_mutex );
   if(list->current_size == list->max_size)
   {
@@ -80,7 +88,7 @@ void append_word_list( word_list * list , word new_word)
   }
   pthread_mutex_unlock( &alloc_mutex );
   
-
+  //Grab index, safely 
   int index;
   pthread_mutex_lock( &index_mutex );
   index = list->current_size++;
@@ -164,24 +172,22 @@ void * list_populate( void * arg )
   char BUFFER[MAX_WORD_SIZE]; //This was causing stack Smashing
   for(;;)
   {
+    //Read next word from File and check for End of File
     int result  = fscanf(fp, "%s", BUFFER);
-    if( result == EOF )
-    {
-      break;
-    } 
+    if( result == EOF ) break;
+
+    // Copy string into the new Word, as well as the Filename
     word local_word;
     local_word.text = malloc( (sizeof(char)*strlen(BUFFER))+1 );
-    
     strcpy(local_word.text , BUFFER );
-    //strcpy(local_word.file_name, args->file_name);
+
     local_word.file_name = malloc((sizeof(char)*strlen(args->file_name))+1);
     strcpy(local_word.file_name, args->file_name);
 
-
-   // printf( "%s\n" , local_word.text);
-   
-     append_word_list( args->the_list , local_word);
+    //Add Word to List
+    append_word_list( args->the_list , local_word);
   }
+  // Close file and free up unneeded variables
   fclose(fp);
   free(args->file_name);
   free(args);
@@ -241,24 +247,23 @@ int main(int argc, char  *argv[])
   pthread_t tid[MAX_FILE_COUNT]; int n =0;
 
 
-  if (d)
+  if (d == NULL)
   {
-    while ((dir = readdir(d)) != NULL)
-    {
-      if( !(is_desired_file(argv[1] , dir->d_name)) ) continue;
-      
-      struct pass_in * pass_me = pass_prep(argv[1], dir->d_name, current_list);
-
-      pthread_create(&tid[n++], NULL , list_populate, pass_me);
-      printf("MAIN THREAD: Assigned '%s' to child thread %u.\n",
-        dir->d_name, (unsigned int)tid[n-1]);
-    }
-    closedir(d);
-  }else 
-  {
-    fprintf(stderr, "ERROR: was that really a directory?");
+    fprintf(stderr, "ERROR: Directory Failed to Open\n");
     return EXIT_FAILURE;
   }
+
+  while ((dir = readdir(d)) != NULL)
+  {
+    if( !(is_desired_file(argv[1] , dir->d_name)) ) continue;
+    
+    struct pass_in * pass_me = pass_prep(argv[1], dir->d_name, current_list);
+
+    pthread_create(&tid[n++], NULL , list_populate, pass_me);
+    printf("MAIN THREAD: Assigned '%s' to child thread %u.\n",
+      dir->d_name, (unsigned int)tid[n-1]);
+  }
+  closedir(d);
   
 
   int i =0;
