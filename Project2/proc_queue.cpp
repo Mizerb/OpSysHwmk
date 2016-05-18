@@ -69,7 +69,7 @@ Proc Proc_Queue::get_next()
   Ret = queue.front();
   queue.pop_front();
     
-  Ret.burst_time = Ret.inital_burst_time;
+  //Ret.burst_time = Ret.inital_burst_time;
 
   return Ret;
 }

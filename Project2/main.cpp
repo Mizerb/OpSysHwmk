@@ -85,6 +85,7 @@ int main( int argc , char* argv[])
   my_cpu.change_type(SRT_);
 
   Result SRT_result = my_cpu.RUN();
+  printf("\n");
 #ifdef DEBUG
   //printf("Run 2 executed\n");
 

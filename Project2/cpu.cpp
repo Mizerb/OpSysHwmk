@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "cpu.h"
 
@@ -30,13 +31,20 @@ Result Cpu::RUN()
 {
   // internal things and safties!!
   // Idk if there are any....
-  printf("time 0ms: Simulator started for %s %s\n",
-    (proc_q.print_type()).c_str(), PRINT_Q);
+  std::string name;
+  if(type == SRT_) name = "SRT";
+  if(type == FCFS_) name = "FCFS";
+  if(type == RR_) name = "RR";
 
+
+  printf("time 0ms: Simulator started for %s\n",
+    (name).c_str());
+
+  working_set = inital_set;
   Result Ret = execute_run();
 
   printf("time %lums: Simulator ended for %s\n",
-    time, (proc_q.print_type()).c_str());
+    time, (name).c_str());
 
   return Ret;
 }
@@ -64,34 +72,37 @@ void Cpu::queue_populate( FILE * fp)
   	    (new_proc.inital_burst_time), 
   	    (new_proc.num_burst) , 
   	    (new_proc.inital_io_time));
-  	    new_q.print_Q();
+  	    
 */
     new_proc.num_burst = new_proc.inital_num_burst;
   	new_q.Add_proc(new_proc , a_time);
   }
   inital_set = new_q;
+  inital_set.finalize();
+  //printf("JUST MADE:%i\n", inital_set.get_size());
   return;
 }
 
 bool Cpu::not_done()
 {
-  if(Run_result.task_count == inital_set.get_size() )
+  //printf("Ummm %i %i\n",inital_set.get_size(), Run_result.task_count );
+  if(Run_result.task_count < inital_set.get_size() )
   {
   	//printf( "Dumb shit\n");
-  	return false;
+  	return true;
   }
 /*
   printf("TASK_COUNT = %i \t inital_q= %i \n" ,
   	Run_result.task_count, inital_q.get_size());
   printf("Dickbut\n");
 */
-  return true;
+  return false;
 }
 
 void Cpu::reset()
 {
   time = 0;
-  inital_set = working_set;
+  working_set = inital_set;
   Result meh;
   Run_result = meh;
   Core temper;
@@ -112,10 +123,19 @@ void Cpu::queue_working()
 {
   while(working_set.next_proc(time))
   {
+    //printf("yes I am\n");
     Proc a_proc = working_set.get_next_proc();
-    proc_q.add_proc(a_proc);
-    printf("time %lums: P%i arrived %s\n", time, a_proc.proc_num,
-      PRINT_Q);
+    a_proc.burst_time = a_proc.inital_burst_time;
+    if(type == SRT_)
+    {
+      arrival_q.add_proc(a_proc);
+    }
+    else
+    {
+      proc_q.add_proc(a_proc);
+      printf("time %lums: P%i arrived %s\n", time, a_proc.proc_num,
+        PRINT_Q);
+    }
   }
 }
 
@@ -142,14 +162,18 @@ void Cpu::SRT_core_walk()
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
   {
     // Stupid pre-emptying thing, why do arrival times have to be delayed?
-    swapping_check &= it->is_context_swapping;
+    swapping_check &= !(it->is_context_swapping);
+
+    //printf("arrival_q:%s \n" , (arrival_q.print_Q()).c_str());
     if( arrival_q.is_empty() || it->is_context_swapping) continue; // Done
 
-    if(it->burst_now.burst_time < arrival_q.top().burst_time ) // Prempt
+    if(it->burst_now.burst_time > arrival_q.top().burst_time ) // Prempt
     {
+      
       printf("time %lums: P%i arrived, preempting P%i %s\n", time, arrival_q.top().proc_num,
         it->burst_now.proc_num , PRINT_Q ); // Truly evil I know.
 
+      //printf( "%i    %i \n", it->burst_now.burst_time,arrival_q.top().burst_time);
       proc_q.add_proc(it->burst_now);
 
       it->start_context_swap( arrival_q.get_next() );
@@ -157,9 +181,10 @@ void Cpu::SRT_core_walk()
       Run_result.context_swaps++;
     }
   }
-
+  //printf("What\n");
   if(swapping_check)
   {
+    //printf("Here?\n");
     while( !(arrival_q.is_empty()))
     {
       Proc next = arrival_q.get_next();
@@ -174,7 +199,7 @@ void Cpu::RR_core_walk()
 {
   for(std::list<Core>::iterator it= cores.begin(); it != cores.end() ; ++it )
   {
-    if(it->time_expired())
+    if(it->time_expired() && !(proc_q.is_empty()) )
     {
       if(proc_q.is_empty()) continue;
       //Premet this bitch
@@ -303,21 +328,35 @@ void Cpu::end_of_IO(Proc dieing_proc)
 {
   if( dieing_proc.num_burst == 0 && dieing_proc.inital_io_time > 0)
   {
-  	proc_q.add_proc( dieing_proc);
-  	sprintf(buff,"time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+  	dieing_proc.burst_time = dieing_proc.inital_burst_time;
+    proc_q.add_proc( dieing_proc);
+  	printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
   	    PRINT_Q);
   }
   else if(dieing_proc.num_burst <= 0) //The proc is dead
   {
-    sprintf(buff,"time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+    printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
   	    PRINT_Q);
     End_of_Proc(dieing_proc);
   }
   else
   {
-  	proc_q.add_proc( dieing_proc);
-  	sprintf(buff,"time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
-  	    PRINT_Q);
+  	dieing_proc.burst_time = dieing_proc.inital_burst_time;
+    if(type == SRT_ )
+    {
+      arrival_q.add_proc( dieing_proc);
+      printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+        PRINT_Q);    
+    }
+    else
+    {
+      
+      printf("time %lums: P%i completed I/O %s\n", time, dieing_proc.proc_num, 
+        PRINT_Q);
+      proc_q.add_proc( dieing_proc);
+      printf("time %lums: P%i arrived %s\n", time, dieing_proc.proc_num,
+        PRINT_Q);
+    }
   	//DO I note this?
   }
   io_stalling = buff;
@@ -355,7 +394,7 @@ void Cpu::execute_checking()
   cores_check_all();
   IO_dealings();
   cores_check_all();
-  printf("%s", io_stalling.c_str());
+  //printf("%s", io_stalling.c_str());
   //This will be more complicated with I/O after end of all procs
   return;
 }
@@ -366,7 +405,9 @@ Result Cpu::execute_run()
   time = -1; 
   //printf( "HERE %s\n", PRINT_Q);
 
-  while( not_done() )
+  //printf("Set Size: %i\n" , inital_set.get_size());
+  //working_set.PRINT();
+  while( not_done()/* time != 20*/ )
   {
     //printf( "FUCK\n");
     //PRINT_Q;

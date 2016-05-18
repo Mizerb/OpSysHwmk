@@ -15,9 +15,10 @@ private:
     std::list<tied> list;
 
 public:
-    bool next_proc(int time);
+    bool next_proc(unsigned long time);
     Proc get_next_proc();
     void Add_proc(Proc a_proc , int a_time); 
     void finalize();
     int get_size(){ return list.size();}
+    void PRINT();
 };

@@ -95,5 +95,5 @@ void Core::wait_for_proc()
 
 bool Core::time_expired()
 {
-  return (slice_time <= 0); 
+  return (slice_time <= 0 && has_proc); 
 }
