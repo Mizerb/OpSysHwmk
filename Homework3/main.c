@@ -222,7 +222,8 @@ struct pass_in* pass_prep( char* dir_name, char* file_name, word_list* list)
   char path[MAX_WORD_SIZE]; path[0]=0;
 
   strcat(path, dir_name);
-  if( strstr(dir_name, "/") == NULL ) strcat(path, "/");
+  //if( strstr(dir_name, "/") == NULL || dir_name[strlen(dir_name)-1] != '/' )
+  //  strcat(path, "/");
   strcat(path, file_name);
 
   pass_me->path = malloc(sizeof(char)*strlen(path)+1);
@@ -239,11 +240,15 @@ int main(int argc, char  *argv[])
   }
   DIR* d;
   struct dirent *dir;
+  
+  char* dir_name = malloc(sizeof(char)*strlen(argv[1])+3);
+  strcpy(dir_name, argv[1]);
+  if(dir_name[strlen(dir_name)-1] != '/') strcat(dir_name, "/");
+  printf("%s\n", dir_name);
+  
+  d= opendir(dir_name);
 
-  d= opendir(argv[1]);
-
-
-  word_list * current_list = new_word_list();
+  
   pthread_t tid[MAX_FILE_COUNT]; int n =0;
 
 
@@ -253,11 +258,14 @@ int main(int argc, char  *argv[])
     return EXIT_FAILURE;
   }
 
+  word_list * current_list = new_word_list();
+
   while ((dir = readdir(d)) != NULL)
   {
-    if( !(is_desired_file(argv[1] , dir->d_name)) ) continue;
+    printf("%s\n", dir->d_name);
+    if( !(is_desired_file(dir_name , dir->d_name)) ) continue;
     
-    struct pass_in * pass_me = pass_prep(argv[1], dir->d_name, current_list);
+    struct pass_in * pass_me = pass_prep(dir_name, dir->d_name, current_list);
 
     pthread_create(&tid[n++], NULL , list_populate, pass_me);
     printf("MAIN THREAD: Assigned '%s' to child thread %u.\n",
