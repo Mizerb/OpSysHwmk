@@ -21,6 +21,7 @@ void print_usage()
 typedef struct c_word  /* why? Because I like to think about things this way */
 {
   char* text;
+  char* file;
 }word;
 
 typedef struct c_word_list
